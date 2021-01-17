@@ -22,6 +22,9 @@
     #include <basics/Timer>
 
     #include "Sprite.hpp"
+    #include "controlador.cpp"
+    #include "modelo.cpp"
+
 
 using  namespace graphics;
 
