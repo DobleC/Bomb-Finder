@@ -22,7 +22,7 @@
     #include <basics/Timer>
 
     #include "Sprite.hpp"
-    #include "controlador.cpp"
+    #include "controlador.hpp"
     #include "modelo.cpp"
 
 

@@ -16,6 +16,7 @@
 
 using namespace basics;
 using namespace std;
+using namespace model;
 
 namespace game
 {

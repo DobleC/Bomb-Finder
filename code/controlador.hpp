@@ -7,11 +7,13 @@
  *
  * rexitah@gmail.com
  */
+namespace controller
+{
+    void desvelarCasilla();
 
-void desvelarCasilla();
-void multiplicarPunt();
-void gameOver();
-void siguienteRonda();
+    void multiplicarPunt();
 
-//Texture_Handle texture;
-//Texture_Handle textureSkate;
+    void gameOver();
+
+    void siguienteRonda();
+}
