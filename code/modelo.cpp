@@ -53,8 +53,6 @@ namespace model {
         }
 
         Casilla() {
-            // srand (time(NULL)); // No funciona, se mantiene con el mismo generador en siempre (debe ir en el main)
-
             int randomMult = rand() % 100;
             int randomBomba = rand() % 100;
 
@@ -91,14 +89,14 @@ namespace model {
         int puntosColumna[5] = {0, 0, 0, 0, 0};
 
         Tablero() = default;
+        //~Tablero();
 
         //Tablero(int percent[]) : Casilla{percent}//--------------> Problemas aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         //{
         //}
 
     private:
-        void
-        calcDatosFila() // Rellena el array bombas fila con el número de bombas por cada fila (nºfila = pos en el array)
+        void calcDatosFila() // Rellena el array bombas fila con el número de bombas por cada fila (nºfila = pos en el array)
         {                    // Rellena el array puntos fila con el número de puntos por cada fila (nºfila = pos en el array)
             int f = 0; // #fila
             int c = 0; // #columna
@@ -107,8 +105,7 @@ namespace model {
                 bombasFila[f] += matrizTablero[f][c].getValorBomba();
                 puntosFila[f] += matrizTablero[f][c].getValorMultp();
 
-                if (c == ladoLength &&
-                    f < ladoLength) // Salta a la siguiente fila siempre que haya una
+                if (c == ladoLength && f < ladoLength) // Salta a la siguiente fila siempre que haya una
                 {
                     c = -1;
                     ++f;
@@ -116,8 +113,7 @@ namespace model {
             }
         }
 
-        void
-        calcDatosColumna() // Rellena el array bombas columna con el número de bombas por cada columna (nºcolumna = pos en el array)
+        void calcDatosColumna() // Rellena el array bombas columna con el número de bombas por cada columna (nºcolumna = pos en el array)
         {                       // Rellena el array puntos columna con el número de puntos por cada columna (nºcolumna = pos en el array)
             int f = 0; // #fila
             int c = 0; // #columna
@@ -126,8 +122,7 @@ namespace model {
                 bombasColumna[c] += matrizTablero[f][c].getValorBomba();
                 puntosColumna[c] += matrizTablero[f][c].getValorMultp();
 
-                if (f == ladoLength &&
-                    c < ladoLength) // Salta a la siguiente columna siempre que haya una
+                if (f == ladoLength && c < ladoLength) // Salta a la siguiente columna siempre que haya una
                 {
                     f = -1;
                     ++c;
@@ -135,10 +130,47 @@ namespace model {
             }
         }
 
+        void copiarCasillas(Tablero T)
+        {
+            int f = 0; // #fila
+            int c = 0; // #columna
+            for (; c <= ladoLength; ++c) // Recorre la matriz fila a fila de izquierda a derecha
+            {
+                matrizTablero[f][c] = T.matrizTablero[f][c];
+
+                if (c == ladoLength &&  f < ladoLength) // Salta a la siguiente fila siempre que haya una
+                {
+                    c = -1;
+                    ++f;
+                }
+            }
+        }
+
+        void copiarArrays(Tablero T)
+        {
+            for (int i = 0; i < 5; ++i)
+            {
+                bombasFila[i] = T.bombasFila[i];
+                bombasColumna[i] = T.bombasColumna[i];
+                puntosFila[i] = T.puntosFila[i];
+                puntosColumna[i] = T.puntosColumna[i];
+            }
+
+        }
+
+
     public:
         void calcDatos() {
             calcDatosFila();
             calcDatosColumna();
+        }
+
+        Tablero & operator = (const Tablero & T)
+        {
+            copiarCasillas(T);
+            copiarArrays(T);
+
+            return  *this;
         }
 
     };

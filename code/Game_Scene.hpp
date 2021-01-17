@@ -26,7 +26,8 @@
     #include "modelo.cpp"
 
 
-using  namespace graphics;
+using namespace graphics;
+using namespace model;
 
 
     namespace game
@@ -42,6 +43,7 @@ using  namespace graphics;
 
             // Estos typedefs pueden ayudar a hacer el código más compacto y claro:
 
+            typedef std::shared_ptr < Tablero    >     Tablero_Handle;
             typedef std::shared_ptr < Sprite     >     Sprite_Handle;
             typedef std::list< Sprite_Handle     >     Sprite_List;
             typedef std::shared_ptr< Texture_2D  >     Texture_Handle;
@@ -66,7 +68,6 @@ using  namespace graphics;
                 UNINITIALIZED,
                 WAITING_TO_START,
                 PLAYING,
-                BALL_LEAVING,
             };
 
         private:
@@ -83,8 +84,8 @@ using  namespace graphics;
 
         private:
 
-            static constexpr float   ball_speed = 400.f;        ///< Velocidad a la que se mueve la bola (en unideades virtuales por segundo).
-            static constexpr float player_speed = 300.f;        ///< Velocidad a la que se mueven ambos jugadores (en unideades virtuales por segundo).
+
+
 
         private:
 
@@ -98,15 +99,15 @@ using  namespace graphics;
             Texture_Map    textures;                            ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
             Sprite_List    sprites;                             ///< Lista en la que se guardan shared_ptr a los sprites creados.
 
-            //Sprite       * top_border;                          ///< Puntero al sprite de la lista de sprites que representa el borde superior.
+            //Sprite      top_border[5][5];                          ///< Puntero al sprite de la lista de sprites que representa el borde superior.
             //Sprite       * bottom_border;                       ///< Puntero al sprite de la lista de sprites que representa el borde inferior.
             //Sprite       * left_player;                         ///< Puntero al sprite de la lista de sprites que representa al jugador izquierdo.
             //Sprite       * right_player;                        ///< Puntero al sprite de la lista de sprites que representa al jugador derecho.
             //Sprite       * ball;                                ///< Puntero al sprite de la lista de sprites que representa a la bola.
 
-            bool           follow_target;                       ///< true si el usuario está tocando la pantalla y su player ir hacia donde toca.
-            float          user_target_y;                       ///< Coordenada Y hacia donde debe ir el player del usuario cuando este toca la pantalla.
-
+            Casilla        *casillas[25];                       ///< Guarda los punteros a las 25 casillas
+            //Sprite         *grafico_casillas[25];               ///< Guarda punteros a los sprites de las casillas
+            Tablero        tablero;                             ///< Guarda la información del tablero
             Timer          timer;                               ///< Cronómetro usado para medir intervalos de tiempo
 
         public:
@@ -212,6 +213,12 @@ using  namespace graphics;
              * @param canvas Referencia al Canvas con el que dibujar.
              */
             void render_playfield (Canvas & canvas);
+
+            /**
+             * Recorre el array del tablero para obtener su información
+             * @param tablero Referencia al Tablero.
+             */
+            void traverse_tablero (Tablero & tablero);
 
         };
 

@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <basics/Canvas>
 #include <basics/Director>
+#include <android/log.h>
 
 using namespace basics;
 using namespace std;
@@ -42,8 +43,7 @@ namespace game
     // ---------------------------------------------------------------------------------------------
     // Definiciones de los atributos estáticos de la clase:
 
-    constexpr float Game_Scene::  ball_speed;
-    constexpr float Game_Scene::player_speed;
+    //constexpr float Game_Scene::  ball_speed;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -72,6 +72,7 @@ namespace game
 
     bool Game_Scene::initialize ()
     {
+        //restart_game();
         state     = LOADING;
         suspended = true;
         gameplay  = UNINITIALIZED;
@@ -201,9 +202,10 @@ namespace game
         else
         if (timer.get_elapsed_seconds () > 1.f)         // Si las texturas se han cargado muy rápido
         {                                               // se espera un segundo desde el inicio de
-            create_sprites ();                          // la carga antes de pasar al juego para que
-            restart_game   ();                          // el mensaje de carga no aparezca y desaparezca
+            restart_game   ();                          // la carga antes de pasar al juego para que
+            create_sprites ();                          // el mensaje de carga no aparezca y desaparezca
                                                         // demasiado rápido.
+
             state = RUNNING;
         }
     }
@@ -213,6 +215,34 @@ namespace game
     void Game_Scene::create_sprites ()
     {
 
+        int f = 1; // #fila
+        int c = 1; // #columna
+        int i = 1; // indice
+        for (; c <= 5; ++c, ++i) // Recorre la matriz fila a fila de izquierda a derecha
+        {
+            casillas[i] = &tablero.matrizTablero[f][c]; // Guarda las direcciones de las casillas del tablero
+
+            if (!casillas[i]->getDesvelada()) {
+                Sprite_Handle card(new Sprite(textures[ID(down)].get()));
+                card->set_position({50 + f * 110, 0 + c * 110});
+                card->set_scale(0.4f);
+                sprites.push_back(card);
+
+               // __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s");
+
+            }
+            //else if(cas)
+
+            if (c == 5 && f < 5) // Salta a la siguiente fila siempre que haya una
+            {
+                c = 0;
+                ++f;
+            }
+
+
+        }
+
+
 
        // top_border    =             top_bar.get ();
        // bottom_border =          bottom_bar.get ();
@@ -220,25 +250,25 @@ namespace game
        // right_player  = right_player_handle.get ();
        // ball          =         ball_handle.get ();
 
-        Sprite_Handle    downcard (new Sprite( textures[ID(down)] .get () ));
-        Sprite_Handle    onecard  (new Sprite( textures[ID(one)]  .get () ));
-        Sprite_Handle    twocard  (new Sprite( textures[ID(two)]  .get () ));
-        Sprite_Handle    threecard(new Sprite( textures[ID(three)].get () ));
-        Sprite_Handle    bombcard (new Sprite( textures[ID(bomb)] .get () ));
 
 
-        downcard->set_anchor   (TOP | LEFT);
-        downcard->set_position ({ 200, 150 });
-        //middle_bar->set_anchor   (CENTER);
-        //middle_bar->set_position ({ canvas_width / 2.f, canvas_height / 2.f });
-        //bottom_bar->set_anchor   (BOTTOM | LEFT);
-        //bottom_bar->set_position ({ 0, 0 });
+        //Sprite_Handle    downcard (new Sprite( textures[ID(down)] .get () ));
+        //Sprite_Handle    onecard  (new Sprite( textures[ID(one)]  .get () ));
+        //Sprite_Handle    twocard  (new Sprite( textures[ID(two)]  .get () ));
+        //Sprite_Handle    threecard(new Sprite( textures[ID(three)].get () ));
+        //Sprite_Handle    bombcard (new Sprite( textures[ID(bomb)] .get () ));
 
-        sprites.push_back (downcard );
-        sprites.push_back (onecard  );
-        sprites.push_back (twocard  );
-        sprites.push_back (threecard);
-        sprites.push_back (bombcard );
+
+        //downcard->set_anchor   (TOP | LEFT);
+        //downcard->set_position ({ 200, 150 });
+        //downcard-> set_scale(0.5f);
+
+
+        //sprites.push_back (downcard );
+        //sprites.push_back (onecard  );
+        //sprites.push_back (twocard  );
+        //sprites.push_back (threecard);
+        //sprites.push_back (bombcard );
 
     }
 
@@ -248,15 +278,11 @@ namespace game
 
     void Game_Scene::restart_game()
     {
-       //  left_player->set_position ({ left_player->get_width () * 3.f, canvas_height / 2.f });
-       //  left_player->set_speed_y  (0.f);
-       // right_player->set_position ({ canvas_width  - right_player->get_width () * 3.f, canvas_height / 2.f });
-       // right_player->set_speed_y  (0.f);
-       //         ball->set_position ({ canvas_width / 2.f, canvas_height / 2.f });
-       //         ball->set_speed    ({ 0.f, 0.f });
-//
-       // follow_target = false;
-//
+        Tablero tab;
+        tablero = tab;
+        tablero.calcDatos();
+        //traverse_tablero(tablero);
+
         gameplay = WAITING_TO_START;
     }
 
@@ -333,11 +359,6 @@ namespace game
       //      right_player->set_speed_y (0);
     }
 
-    // ---------------------------------------------------------------------------------------------
-
-
-    // ---------------------------------------------------------------------------------------------
-
     void Game_Scene::render_loading (Canvas & canvas)
     {
         Texture_2D * loading_texture = textures[ID(loading)].get ();
@@ -362,6 +383,26 @@ namespace game
         {
             sprite->render (canvas);
         }
+    }
+
+    void Game_Scene::traverse_tablero(Tablero & tablero) {
+
+        int f = 0; // #fila
+        int c = 0; // #columna
+        int i = 0; // indice
+        for (; c <= 4; ++c, ++i) // Recorre la matriz fila a fila de izquierda a derecha
+        {
+            casillas[i] = &tablero.matrizTablero[f][c]; // Guarda las direcciones de las casillas del tablero
+
+            if (c == 4 && f < 4) // Salta a la siguiente fila siempre que haya una
+            {
+                c = -1;
+                ++f;
+            }
+        }
+
+
+
     }
 
 }
