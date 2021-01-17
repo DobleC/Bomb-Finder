@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+    defaultConfig {
+        applicationId "edu.esne.basicsexample"
+        minSdkVersion 14
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++11 -frtti"
+                //arguments  "-DANDROID_STL=libc++"
+            }
+        }
+        //ndk {
+            //abiFilters "armeabi-v7a"
+        //}
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path file('CMakeLists.txt')
+        }
+    }
+}
+
+// Se sincroniza la carpeta de assets externa al proyecto con la interna:
+// https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Sync.html
+
+task syncAssets(type: Sync) {
+    from "../../../assets"
+    into "src/main/assets"
+}
+
+// Se establece que la sincronización de assets se realice al principio:
+
+project.afterEvaluate {
+    preBuild.dependsOn syncAssets
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
