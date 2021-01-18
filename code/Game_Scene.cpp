@@ -26,7 +26,7 @@ namespace game
 
     Game_Scene::Texture_Data Game_Scene::textures_data[] =
     {
-        { ID(loading),    "high/sprites/loading.png"      },
+        { ID(loading),"high/sprites/loading.png"          },
         { ID(down),   "high/sprites/0facedown.png"        },
         { ID(one),    "high/sprites/1point.png"           },
         { ID(two),    "high/sprites/2point.png"           },
@@ -71,7 +71,6 @@ namespace game
 
     bool Game_Scene::initialize ()
     {
-        //restart_game();
         state     = LOADING;
         suspended = true;
         gameplay  = UNINITIALIZED;
@@ -213,7 +212,6 @@ namespace game
 
     void Game_Scene::create_sprites ()
     {
-
         int f = 0; // #fila
         int c = 0; // #columna
         int i = 0; // indice
@@ -244,6 +242,8 @@ namespace game
         }
 
     }
+
+
 
     // ---------------------------------------------------------------------------------------------
     // Cuando el juego se inicia por primera vez o cuando se reinicia porque un jugador pierde, se

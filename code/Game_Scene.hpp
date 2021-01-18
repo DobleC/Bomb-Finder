@@ -23,7 +23,7 @@
 
     #include "Sprite.hpp"
     #include "controlador.hpp"
-    #include "modelo.cpp"
+    #include "modelo.hpp"
 
 
 using namespace graphics;
