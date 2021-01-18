@@ -99,14 +99,8 @@ using namespace model;
             Texture_Map    textures;                            ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
             Sprite_List    sprites;                             ///< Lista en la que se guardan shared_ptr a los sprites creados.
 
-            //Sprite      top_border[5][5];                          ///< Puntero al sprite de la lista de sprites que representa el borde superior.
-            //Sprite       * bottom_border;                       ///< Puntero al sprite de la lista de sprites que representa el borde inferior.
-            //Sprite       * left_player;                         ///< Puntero al sprite de la lista de sprites que representa al jugador izquierdo.
-            //Sprite       * right_player;                        ///< Puntero al sprite de la lista de sprites que representa al jugador derecho.
-            //Sprite       * ball;                                ///< Puntero al sprite de la lista de sprites que representa a la bola.
-
             Casilla        *casillas[25];                       ///< Guarda los punteros a las 25 casillas
-            //Sprite         *grafico_casillas[25];               ///< Guarda punteros a los sprites de las casillas
+            Sprite         *grafico_casillas[25];               ///< Guarda punteros a los sprites de las casillas
             Tablero        tablero;                             ///< Guarda la información del tablero
             Timer          timer;                               ///< Cronómetro usado para medir intervalos de tiempo
 
@@ -214,11 +208,6 @@ using namespace model;
              */
             void render_playfield (Canvas & canvas);
 
-            /**
-             * Recorre el array del tablero para obtener su información
-             * @param tablero Referencia al Tablero.
-             */
-            void traverse_tablero (Tablero & tablero);
 
         };
 

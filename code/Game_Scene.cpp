@@ -13,7 +13,6 @@
 #include <cstdlib>
 #include <basics/Canvas>
 #include <basics/Director>
-#include <android/log.h>
 
 using namespace basics;
 using namespace std;
@@ -27,7 +26,7 @@ namespace game
 
     Game_Scene::Texture_Data Game_Scene::textures_data[] =
     {
-        { ID(loading),    "high/sprites/loading.png"        },
+        { ID(loading),    "high/sprites/loading.png"      },
         { ID(down),   "high/sprites/0facedown.png"        },
         { ID(one),    "high/sprites/1point.png"           },
         { ID(two),    "high/sprites/2point.png"           },
@@ -96,7 +95,7 @@ namespace game
 
     // ---------------------------------------------------------------------------------------------
 
-    void Game_Scene::handle (Event & event)
+    void Game_Scene::handle (Event & event) // Ejemplos de touch
     {
         if (state == RUNNING)               // Se descartan los eventos cuando la escena está LOADING
         {
@@ -215,65 +214,39 @@ namespace game
     void Game_Scene::create_sprites ()
     {
 
-        int f = 1; // #fila
-        int c = 1; // #columna
-        int i = 1; // indice
-        for (; c <= 5; ++c, ++i) // Recorre la matriz fila a fila de izquierda a derecha
+        int f = 0; // #fila
+        int c = 0; // #columna
+        int i = 0; // indice
+        int xLoc, yLoc; // Posiciones en X e Y
+
+        for (; c <= 4; ++c, ++i) // Recorre la matriz fila a fila de izquierda a derecha
         {
-            casillas[i] = &tablero.matrizTablero[f][c]; // Guarda las direcciones de las casillas del tablero
+            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
+            yLoc = c + 1; //
+            casillas[i] = &tablero.matrizTablero[f][c]; // Guardar las direcciones de las casillas del tablero
 
-            if (!casillas[i]->getDesvelada()) {
-                Sprite_Handle card(new Sprite(textures[ID(down)].get()));
-                card->set_position({50 + f * 110, 0 + c * 110});
-                card->set_scale(0.4f);
-                sprites.push_back(card);
 
-               // __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "%s");
-
-            }
-            //else if(cas)
-
-            if (c == 5 && f < 5) // Salta a la siguiente fila siempre que haya una
+            if(!casillas[i]->getDesvelada())
             {
-                c = 0;
+                Sprite_Handle card(new Sprite(textures[ID(down)].get()));
+                card->set_position({50 + xLoc * 110, 0 + yLoc * 110});
+                card->set_scale(0.4f);
+                grafico_casillas[i] = card.get();
+                sprites.push_back(card);
+            }
+
+
+            if (c == 4 && f < 4) // Salta a la siguiente fila siempre que haya una
+            {
+                c = -1;
                 ++f;
             }
-
-
         }
-
-
-
-       // top_border    =             top_bar.get ();
-       // bottom_border =          bottom_bar.get ();
-       // left_player   =  left_player_handle.get ();
-       // right_player  = right_player_handle.get ();
-       // ball          =         ball_handle.get ();
-
-
-
-        //Sprite_Handle    downcard (new Sprite( textures[ID(down)] .get () ));
-        //Sprite_Handle    onecard  (new Sprite( textures[ID(one)]  .get () ));
-        //Sprite_Handle    twocard  (new Sprite( textures[ID(two)]  .get () ));
-        //Sprite_Handle    threecard(new Sprite( textures[ID(three)].get () ));
-        //Sprite_Handle    bombcard (new Sprite( textures[ID(bomb)] .get () ));
-
-
-        //downcard->set_anchor   (TOP | LEFT);
-        //downcard->set_position ({ 200, 150 });
-        //downcard-> set_scale(0.5f);
-
-
-        //sprites.push_back (downcard );
-        //sprites.push_back (onecard  );
-        //sprites.push_back (twocard  );
-        //sprites.push_back (threecard);
-        //sprites.push_back (bombcard );
 
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Juando el juego se inicia por primera vez o cuando se reinicia porque un jugador pierde, se
+    // Cuando el juego se inicia por primera vez o cuando se reinicia porque un jugador pierde, se
     // llama a este método para restablecer la posición y velocidad de los sprites:
 
     void Game_Scene::restart_game()
@@ -281,7 +254,6 @@ namespace game
         Tablero tab;
         tablero = tab;
         tablero.calcDatos();
-        //traverse_tablero(tablero);
 
         gameplay = WAITING_TO_START;
     }
@@ -327,7 +299,7 @@ namespace game
     // tocando la pantalla por encima o por debajo de su centro. Cuando el usuario no toca la
     // pantalla se deja al player quieto.
 
-    void Game_Scene::update_user ()
+    void Game_Scene::update_user () // Ejemplo intersects
     {
       //  if (right_player->intersects (*top_border))
       //  {
@@ -384,8 +356,45 @@ namespace game
             sprite->render (canvas);
         }
     }
+}
 
-    void Game_Scene::traverse_tablero(Tablero & tablero) {
+/*
+ *  if (casillas[i]->getValorBomba() == 1)
+ *          {
+ *              Sprite_Handle card(new Sprite(textures[ID(bomb)].get()));
+ *              card->set_position({50 + xLoc * 110, 0 + yLoc * 110});
+ *              card->set_scale(0.4f);
+ *              grafico_casillas[i] = card.get();
+ *              sprites.push_back(card);
+ *          }
+ *          else if (casillas[i]->getValorMultp() == 1)
+ *          {
+ *              Sprite_Handle card(new Sprite(textures[ID(one)].get()));
+ *              card->set_position({50 +xLoc * 110, 0 + yLoc * 110});
+ *              card->set_scale(0.4f);
+ *              grafico_casillas[i] = card.get();
+ *              sprites.push_back(card);
+ *          }
+ *          else if (casillas[i]->getValorMultp() == 2)
+ *          {
+ *              Sprite_Handle card(new Sprite(textures[ID(two)].get()));
+ *              card->set_position({50 + xLoc * 110, 0 + yLoc * 110});
+ *              card->set_scale(0.4f);
+ *              grafico_casillas[i] = card.get();
+ *              sprites.push_back(card);
+ *          }
+ *          else if (casillas[i]->getValorMultp() == 3)
+ *          {
+ *              Sprite_Handle card(new Sprite(textures[ID(three)].get()));
+ *              card->set_position({50 + xLoc * 110, 0 + yLoc * 110});
+ *              card->set_scale(0.4f);
+ *              grafico_casillas[i] = card.get();
+ *              sprites.push_back(card);
+ *          }
+
+            ----------------------------------------------------------------------------------------------
+
+            void Game_Scene::traverse_tablero(Tablero & tablero) {
 
         int f = 0; // #fila
         int c = 0; // #columna
@@ -400,9 +409,6 @@ namespace game
                 ++f;
             }
         }
-
-
-
     }
 
-}
+ */

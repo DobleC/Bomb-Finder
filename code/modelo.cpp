@@ -66,6 +66,8 @@ namespace model {
                 valorBomba = 1;
                 valorMultp = 0;
             } else valorBomba = 0;
+
+
         }
 
         Casilla(int percent[])  // Recibe un array con porcentajes para alterar los actuales (por si se requiere cambiarlos)
