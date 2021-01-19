@@ -20,6 +20,8 @@
     #include <basics/Scene>
     #include <basics/Texture_2D>
     #include <basics/Timer>
+    #include <basics/Raster_Font>
+    #include <iostream>
 
     #include "Sprite.hpp"
     #include "controlador.hpp"
@@ -44,6 +46,7 @@ using namespace model;
             // Estos typedefs pueden ayudar a hacer el código más compacto y claro:
 
             typedef std::shared_ptr < Tablero    >     Tablero_Handle;
+            typedef std::unique_ptr< basics::Raster_Font > Font_Handle;
             typedef std::shared_ptr < Sprite     >     Sprite_Handle;
             typedef std::list< Sprite_Handle     >     Sprite_List;
             typedef std::shared_ptr< Texture_2D  >     Texture_Handle;
@@ -84,25 +87,26 @@ using namespace model;
 
         private:
 
+            State               state;                               ///< Estado de la escena.
+            Gameplay_State      gameplay;                            ///< Estado del juego cuando la escena está RUNNING.
+            bool                suspended;                           ///< true cuando la escena está en segundo plano y viceversa.
 
+            unsigned            canvas_width;                        ///< Ancho de la resolución virtual usada para dibujar.
+            unsigned            canvas_height;                       ///< Alto  de la resolución virtual usada para dibujar.
 
+            Texture_Map         textures;                            ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
+            Sprite_List         sprites;                             ///< Lista en la que se guardan shared_ptr a los sprites creados.
+            Font_Handle         font;
 
-        private:
+            unsigned            posXTablero = 256;                   ///< Anchura para colocar en horizontal el tablero.
+            const unsigned      posYTablero =  85;                   ///< Altura para colocar en vertical el tablero
+            const unsigned      escalar     = 110;                   ///< Distancia entre casillas
 
-            State          state;                               ///< Estado de la escena.
-            Gameplay_State gameplay;                            ///< Estado del juego cuando la escena está RUNNING.
-            bool           suspended;                           ///< true cuando la escena está en segundo plano y viceversa.
-
-            unsigned       canvas_width;                        ///< Ancho de la resolución virtual usada para dibujar.
-            unsigned       canvas_height;                       ///< Alto  de la resolución virtual usada para dibujar.
-
-            Texture_Map    textures;                            ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
-            Sprite_List    sprites;                             ///< Lista en la que se guardan shared_ptr a los sprites creados.
-
-            Casilla        *casillas[25];                       ///< Guarda los punteros a las 25 casillas
-            Sprite         *grafico_casillas[25];               ///< Guarda punteros a los sprites de las casillas
-            Tablero        tablero;                             ///< Guarda la información del tablero
-            Timer          timer;                               ///< Cronómetro usado para medir intervalos de tiempo
+            Casilla             *casillas[25];                       ///< Guarda los punteros a las 25 casillas
+            Sprite              *grafico_casillas[25];               ///< Guarda punteros a los sprites de las casillas
+            Canvas              *canvas;                             ///< Guarda puntero al canvas
+            Tablero             tablero;                             ///< Guarda la información del tablero
+            Timer               timer;                               ///< Cronómetro usado para medir intervalos de tiempo
 
         public:
 
@@ -168,6 +172,21 @@ using namespace model;
              * En este método se crean los sprites cuando termina la carga de texturas.
              */
             void create_sprites ();
+
+            /**
+             * En este método crea el tablero cuando termina la carga de texturas.
+             */
+            void create_tablero ();
+
+            /**
+             * En este método crea la información del tablero cuando termina su construcción.
+             */
+            void create_info ();
+
+            /**
+             * En este método crea la información del tablero cuando termina su construcción.
+             */
+            void create_text ();
 
             /**
              * Se llama cada vez que se debe reiniciar el juego. En concreto la primera vez y cada

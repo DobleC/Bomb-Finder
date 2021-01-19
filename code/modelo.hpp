@@ -73,6 +73,8 @@ namespace model {
 
     private:
         int ladoLength = 5 - 1;
+        int height = 0;
+        int width  = 0;
 
     public:
         Casilla matrizTablero[5][5];
@@ -81,7 +83,11 @@ namespace model {
         int puntosFila[5]    = {0, 0, 0, 0, 0};
         int puntosColumna[5] = {0, 0, 0, 0, 0};
 
-        Tablero() = default;
+        Tablero()
+        {
+            calcDatos();
+        }
+
 
         //Tablero(int percent[]) : Casilla{percent}//--------------> Problemas aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         //{

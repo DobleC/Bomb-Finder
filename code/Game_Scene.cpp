@@ -32,6 +32,8 @@ namespace game
         { ID(two),    "high/sprites/2point.png"           },
         { ID(three),  "high/sprites/3point.png"           },
         { ID(bomb),   "high/sprites/4bombshadow.png"      },
+        { ID(info),   "high/sprites/5info.png"            },
+        { ID(blank),  "high/sprites/6blank.png"           },
     };
 
     // Pâra determinar el número de items en el array textures_data, se divide el tamaño en bytes
@@ -141,13 +143,15 @@ namespace game
         {
             // El canvas se puede haber creado previamente, en cuyo caso solo hay que pedirlo:
 
-            Canvas * canvas = context->get_renderer< Canvas > (ID(canvas));
+            canvas = context->get_renderer< Canvas > (ID(canvas));
 
             // Si no se ha creado previamente, hay que crearlo una vez:
 
             if (!canvas)
             {
                  canvas = Canvas::create (ID(canvas), context, {{ canvas_width, canvas_height }});
+
+
             }
 
             // Si el canvas se ha podido obtener o crear, se puede dibujar con él:
@@ -184,6 +188,8 @@ namespace game
 
             if (context)
             {
+                font.reset (new Raster_Font("fonts/impact.fnt", context));
+
                 // Se carga la siguiente textura (textures.size() indica cuántas llevamos cargadas):
 
                 Texture_Data   & texture_data = textures_data[textures.size ()];
@@ -203,7 +209,6 @@ namespace game
             restart_game   ();                          // la carga antes de pasar al juego para que
             create_sprites ();                          // el mensaje de carga no aparezca y desaparezca
                                                         // demasiado rápido.
-
             state = RUNNING;
         }
     }
@@ -212,27 +217,48 @@ namespace game
 
     void Game_Scene::create_sprites ()
     {
-        int f = 0; // #fila
-        int c = 0; // #columna
-        int i = 0; // indice
+        create_tablero();
+        create_info();
+    }
+
+
+    void Game_Scene::create_tablero ()
+    {
+        int f = 0;      // #fila
+        int c = 0;      // #columna
+        int i = 0;      // indice
         int xLoc, yLoc; // Posiciones en X e Y
+        Id id;          // Id
 
         for (; c <= 4; ++c, ++i) // Recorre la matriz fila a fila de izquierda a derecha
         {
+
             xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
             yLoc = c + 1; //
             casillas[i] = &tablero.matrizTablero[f][c]; // Guardar las direcciones de las casillas del tablero
 
+            //casillas[i]->setDesvelada(true);
 
-            if(!casillas[i]->getDesvelada())
+            if(!casillas[i]->getDesvelada()) id = ID(down);
+            else
             {
-                Sprite_Handle card(new Sprite(textures[ID(down)].get()));
-                card->set_position({50 + xLoc * 110, 0 + yLoc * 110});
-                card->set_scale(0.4f);
-                grafico_casillas[i] = card.get();
-                sprites.push_back(card);
+                if(casillas[i]->getValorBomba() == 1) id = ID(bomb);
+                else
+                {
+                    switch (casillas[i]->getValorMultp())
+                    {
+                        case 1: id = ID(one  ); break;
+                        case 2: id = ID(two  ); break;
+                        case 3: id = ID(three); break;
+                    }
+                }
             }
 
+            Sprite_Handle card(new Sprite(textures[id].get()));
+            card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
+            card->set_scale(0.40f);
+            grafico_casillas[i] = card.get();
+            sprites.push_back(card);
 
             if (c == 4 && f < 4) // Salta a la siguiente fila siempre que haya una
             {
@@ -240,10 +266,109 @@ namespace game
                 ++f;
             }
         }
-
     }
 
+    void Game_Scene::create_info ()
+    {
+        int xLoc = 0;
+        int yLoc = 0;
+        Id id = ID(info);
 
+        //Columna
+        int f = 5;
+        int c = 0;
+        for (int i = 0; i < 5; ++i, ++c)
+        {
+            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
+            yLoc = c + 1; //
+
+            Sprite_Handle card(new Sprite(textures[id].get()));
+            card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
+            card->set_scale(0.40f);
+            //grafico_casillas[i] = card.get();
+            sprites.push_back(card);
+
+        }
+
+        //Fila
+        f = 0;
+        c = -1;
+        for (int i = 0; i < 6; ++i, ++f)
+        {
+            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
+            yLoc = c + 1; //
+
+            if(i == 5) id = ID(blank);
+
+            Sprite_Handle card(new Sprite(textures[id].get()));
+            card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
+            card->set_scale(0.40f);
+            //grafico_casillas[i] = card.get();
+            sprites.push_back(card);
+        }
+    }
+
+    void Game_Scene::create_text ()
+    {
+        int xLoc = 0;
+        int yLoc = 0;
+
+        int puntosMargen;  // Márgenes dinámicos para recolocar los números en caso de tener 2 cifras
+        int bombasMargen;  //
+
+        wstring puntos;    // Texto a escribir
+        wstring bombas;    //
+
+
+        //Columna
+        int f = 5;
+        int c = 0;
+        for (int i = 0; i < 5; ++i, ++c)
+        {
+            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
+            yLoc = c + 1; //
+
+            puntos = to_wstring(tablero.puntosColumna[i]);
+            bombas = to_wstring(tablero.bombasColumna[i]);
+
+            Text_Layout puntos_text(*font, puntos);
+            Text_Layout bombas_text(*font, bombas);
+
+            if(tablero.puntosColumna[i] > 9) puntosMargen = 3;
+            else puntosMargen = 15;
+
+            if(tablero.bombasColumna[i] > 9) bombasMargen = 3;
+            else bombasMargen = 15;
+
+            canvas->draw_text({puntosMargen + posXTablero + xLoc * escalar, 57 + posYTablero + yLoc * escalar}, puntos_text);
+            canvas->draw_text({bombasMargen + posXTablero + xLoc * escalar, 6 + posYTablero + yLoc * escalar}, bombas_text);
+
+        }
+
+        //Fila
+        f = 0;
+        c = -1;
+        for (int i = 0; i < 5; ++i, ++f)
+        {
+            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
+            yLoc = c + 1; //
+
+            puntos = to_wstring(tablero.puntosFila[i]);
+            bombas = to_wstring(tablero.bombasFila[i]);
+
+            Text_Layout puntos_text(*font, puntos);
+            Text_Layout bombas_text(*font, bombas);
+
+            if(tablero.puntosFila[i] > 9) puntosMargen = 3;
+            else puntosMargen = 15;
+
+            if(tablero.bombasFila[i] > 9) bombasMargen = 3;
+            else bombasMargen = 15;
+
+            canvas->draw_text({puntosMargen + posXTablero + xLoc * escalar, 57 + posYTablero + yLoc * escalar}, puntos_text);
+            canvas->draw_text({bombasMargen + posXTablero + xLoc * escalar, 6 + posYTablero + yLoc * escalar}, bombas_text);
+        }
+    }
 
     // ---------------------------------------------------------------------------------------------
     // Cuando el juego se inicia por primera vez o cuando se reinicia porque un jugador pierde, se
@@ -253,7 +378,7 @@ namespace game
     {
         Tablero tab;
         tablero = tab;
-        tablero.calcDatos();
+        posXTablero = canvas_width / 5;
 
         gameplay = WAITING_TO_START;
     }
@@ -351,50 +476,26 @@ namespace game
 
     void Game_Scene::render_playfield (Canvas & canvas)
     {
+        canvas.draw_segment ({    0,   1 }, { 1280,   1 });     // Borde inferior
+        canvas.draw_segment ({    0, 720 }, { 1280, 720 });     // Borde superior
+        canvas.draw_segment ({    1,   0 }, {    1, 720 });     // Borde izquierdo
+        canvas.draw_segment ({ 1280,   0 }, { 1280, 720 });     // Borde derecho
+
+
+        canvas.draw_segment ({    0,   360 }, { 1280/4,   360 });     // Borde inferior
+        canvas.draw_segment ({    1280 * 0.75,   360 }, { 1280,   360 });     // Borde inferior
+
         for (auto & sprite : sprites)
         {
             sprite->render (canvas);
+
         }
+        create_text();
     }
 }
 
 /*
- *  if (casillas[i]->getValorBomba() == 1)
- *          {
- *              Sprite_Handle card(new Sprite(textures[ID(bomb)].get()));
- *              card->set_position({50 + xLoc * 110, 0 + yLoc * 110});
- *              card->set_scale(0.4f);
- *              grafico_casillas[i] = card.get();
- *              sprites.push_back(card);
- *          }
- *          else if (casillas[i]->getValorMultp() == 1)
- *          {
- *              Sprite_Handle card(new Sprite(textures[ID(one)].get()));
- *              card->set_position({50 +xLoc * 110, 0 + yLoc * 110});
- *              card->set_scale(0.4f);
- *              grafico_casillas[i] = card.get();
- *              sprites.push_back(card);
- *          }
- *          else if (casillas[i]->getValorMultp() == 2)
- *          {
- *              Sprite_Handle card(new Sprite(textures[ID(two)].get()));
- *              card->set_position({50 + xLoc * 110, 0 + yLoc * 110});
- *              card->set_scale(0.4f);
- *              grafico_casillas[i] = card.get();
- *              sprites.push_back(card);
- *          }
- *          else if (casillas[i]->getValorMultp() == 3)
- *          {
- *              Sprite_Handle card(new Sprite(textures[ID(three)].get()));
- *              card->set_position({50 + xLoc * 110, 0 + yLoc * 110});
- *              card->set_scale(0.4f);
- *              grafico_casillas[i] = card.get();
- *              sprites.push_back(card);
- *          }
-
-            ----------------------------------------------------------------------------------------------
-
-            void Game_Scene::traverse_tablero(Tablero & tablero) {
+        void Game_Scene::traverse_tablero(Tablero & tablero) {
 
         int f = 0; // #fila
         int c = 0; // #columna

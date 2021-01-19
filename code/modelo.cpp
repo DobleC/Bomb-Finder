@@ -27,7 +27,7 @@ namespace model {
             valorMultp = 0;
         } else valorBomba = 0;
     }
-    
+
     Casilla::Casilla(int percent[])
     {
         setPercents(percent);
@@ -56,7 +56,7 @@ namespace model {
     {
         int f = 0; // #fila
         int c = 0; // #columna
-        for (; f <= 5; ++f) // Recorre la matriz columna a columna de arriba a abajo
+        for (; f <= ladoLength; ++f) // Recorre la matriz columna a columna de arriba a abajo
         {
             bombasColumna[c] += matrizTablero[f][c].getValorBomba();
             puntosColumna[c] += matrizTablero[f][c].getValorMultp();
