@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <basics/Canvas>
 #include <basics/Director>
+// #include <basics/log>
 
 using namespace basics;
 using namespace std;
@@ -100,25 +101,38 @@ namespace game
     {
         if (state == RUNNING)               // Se descartan los eventos cuando la escena está LOADING
         {
-            if (gameplay == WAITING_TO_START)
-            {
-                //start_playing ();           // Se empieza a jugar cuando el usuario toca la pantalla por primera vez
-            }
-            else switch (event.id)
+            //if (gameplay == WAITING_TO_START)
+            //{
+            //    //start_playing ();           // Se empieza a jugar cuando el usuario toca la pantalla por primera vez
+            //}
+            //else
+            switch (event.id)
             {
                 //case ID(touch-started):     // El usuario toca la pantalla
+
                 //case ID(touch-moved):
-                //{
-                //    user_target_y = *event[ID(y)].as< var::Float > ();
-                //    follow_target = true;
-                //    break;
-                //}
-//
-                //case ID(touch-ended):       // El usuario deja de tocar la pantalla
-                //{
-                //    follow_target = false;
-                //    break;
-                //}
+
+
+                case ID(touch-ended):  // El usuario deja de tocar la pantalla
+                {
+                    x = *event[ID(x)].as< var::Float > ();
+                    y = *event[ID(y)].as< var::Float > ();
+                    Point2f p{ x, y };  // Guarda el último punto tocado
+
+                    for (int i = 0; i < 25; ++i) //Recorre las casillas y sus sprites asociados
+                    {
+                        // Si el punto está contenido en el sprite y la casilla no ha sido desvelada
+                        if(grafico_casillas[i]->contains(p) && !casillas[i]->getDesvelada())
+                        {
+                            Id id = check_ID(casillas[i]);
+                            Sprite_Handle card(new Sprite(textures[id].get()));
+                            card->set_position({casillas[i]->getX(), casillas[i]->getY()});
+                            card->set_scale(0.40f);
+                            sprites.push_back(card);
+                        }
+                    }
+                    break;
+                }
             }
         }
     }
@@ -150,8 +164,6 @@ namespace game
             if (!canvas)
             {
                  canvas = Canvas::create (ID(canvas), context, {{ canvas_width, canvas_height }});
-
-
             }
 
             // Si el canvas se ha podido obtener o crear, se puede dibujar con él:
@@ -221,6 +233,22 @@ namespace game
         create_info();
     }
 
+    Id Game_Scene::check_ID(Casilla *casilla)
+    {
+        Id id;
+
+        if(casilla->getValorBomba() == 1) id = ID(bomb);
+        else
+        {
+            switch (casilla->getValorMultp())
+            {
+                case 1: id = ID(one  ); break;
+                case 2: id = ID(two  ); break;
+                case 3: id = ID(three); break;
+            }
+        }
+        return id;
+    }
 
     void Game_Scene::create_tablero ()
     {
@@ -228,6 +256,7 @@ namespace game
         int c = 0;      // #columna
         int i = 0;      // indice
         int xLoc, yLoc; // Posiciones en X e Y
+        int x, y;       // Valores absolutos en X e Y
         Id id;          // Id
 
         for (; c <= 4; ++c, ++i) // Recorre la matriz fila a fila de izquierda a derecha
@@ -235,27 +264,24 @@ namespace game
 
             xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
             yLoc = c + 1; //
-            casillas[i] = &tablero.matrizTablero[f][c]; // Guardar las direcciones de las casillas del tablero
+            x = posXTablero + xLoc * escalar;
+            y = posYTablero + yLoc * escalar;
 
-            casillas[i]->setDesvelada(true);
+
+            casillas[i] = &tablero.matrizTablero[f][c]; // Guardar las direcciones de las casillas del tablero
+            casillas[i]->setX(x);
+            casillas[i]->setY(y);
+
+            //casillas[i]->setDesvelada(true);
 
             if(!casillas[i]->getDesvelada()) id = ID(down);
             else
             {
-                if(casillas[i]->getValorBomba() == 1) id = ID(bomb);
-                else
-                {
-                    switch (casillas[i]->getValorMultp())
-                    {
-                        case 1: id = ID(one  ); break;
-                        case 2: id = ID(two  ); break;
-                        case 3: id = ID(three); break;
-                    }
-                }
+                id = check_ID(casillas[i]);
             }
 
             Sprite_Handle card(new Sprite(textures[id].get()));
-            card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
+            card->set_position({x, y});
             card->set_scale(0.40f);
             grafico_casillas[i] = card.get();
             sprites.push_back(card);
@@ -499,13 +525,12 @@ namespace game
         canvas.draw_segment ({ 1280,   0 }, { 1280, 720 });     // Borde derecho
 
 
-        canvas.draw_segment ({    0,   360 }, { 1280/4,   360 });     // Borde inferior
-        canvas.draw_segment ({    1280 * 0.75,   360 }, { 1280,   360 });     // Borde inferior
+        canvas.draw_segment ({    0,   360 }, { 1280/4,   360 });           // Medio derecha
+        canvas.draw_segment ({    1280 * 0.75,   360 }, { 1280,   360 });   // Medio izquierda
 
         for (auto & sprite : sprites)
         {
             sprite->render (canvas);
-
         }
         create_text();
     }

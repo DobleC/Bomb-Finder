@@ -87,26 +87,29 @@ using namespace model;
 
         private:
 
-            State               state;                               ///< Estado de la escena.
-            Gameplay_State      gameplay;                            ///< Estado del juego cuando la escena está RUNNING.
-            bool                suspended;                           ///< true cuando la escena está en segundo plano y viceversa.
+            State               state;                    ///< Estado de la escena.
+            Gameplay_State      gameplay;                 ///< Estado del juego cuando la escena está RUNNING.
+            bool                suspended;                ///< true cuando la escena está en segundo plano y viceversa.
 
-            unsigned            canvas_width;                        ///< Ancho de la resolución virtual usada para dibujar.
-            unsigned            canvas_height;                       ///< Alto  de la resolución virtual usada para dibujar.
+            unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
+            unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
 
-            Texture_Map         textures;                            ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
-            Sprite_List         sprites;                             ///< Lista en la que se guardan shared_ptr a los sprites creados.
-            Font_Handle         font;
+            float                 x;                        ///< Denota la coordenada X de donde pulsa el jugador
+            float                 y;                        ///< Denota la coordenada X de donde pulsa el jugador
 
-            unsigned            posXTablero = 256;                   ///< Anchura para colocar en horizontal el tablero.
-            const unsigned      posYTablero =  85;                   ///< Altura para colocar en vertical el tablero
-            const unsigned      escalar     = 110;                   ///< Distancia entre casillas
+            Texture_Map         textures;                 ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
+            Sprite_List         sprites;                  ///< Lista en la que se guardan shared_ptr a los sprites creados.
+            Font_Handle         font;                     ///< Fuente para escribir por pantalla
 
-            Casilla             *casillas[25];                       ///< Guarda los punteros a las 25 casillas
-            Sprite              *grafico_casillas[25];               ///< Guarda punteros a los sprites de las casillas
-            Canvas              *canvas;                             ///< Guarda puntero al canvas
-            Tablero             tablero;                             ///< Guarda la información del tablero
-            Timer               timer;                               ///< Cronómetro usado para medir intervalos de tiempo
+            unsigned            posXTablero = 256;        ///< Anchura para colocar en horizontal el tablero.
+            const unsigned      posYTablero =  85;        ///< Altura para colocar en vertical el tablero
+            const unsigned      escalar     = 110;        ///< Distancia entre casillas
+
+            Casilla             *casillas[25];            ///< Guarda los punteros a las 25 casillas
+            Sprite              *grafico_casillas[25];    ///< Guarda punteros a los sprites de las casillas
+            Canvas              *canvas;                  ///< Guarda puntero al canvas
+            Tablero             tablero;                  ///< Guarda la información del tablero
+            Timer               timer;                    ///< Cronómetro usado para medir intervalos de tiempo
 
         public:
 
@@ -163,19 +166,8 @@ using namespace model;
         private:
 
             /**
-             * En este método se cargan las texturas (una cada fotograma para facilitar que la
-             * propia carga se pueda pausar cuando la aplicación pasa a segundo plano).
-             */
-            void load_textures ();
-
-            /**
-             * En este método se crean los sprites cuando termina la carga de texturas.
-             */
-            void create_sprites ();
-
-            /**
-             * En este método crea el tablero cuando termina la carga de texturas.
-             */
+            * En este método crea el tablero cuando termina la carga de texturas.
+            */
             void create_tablero ();
 
             /**
@@ -187,6 +179,22 @@ using namespace model;
              * En este método crea la información del tablero cuando termina su construcción.
              */
             void create_text ();
+
+            /**
+             * Comprueba la información de una casilla para asociarle una ID de textura.
+             */
+            Id check_ID(Casilla *casilla);
+
+            /**
+             * En este método se cargan las texturas (una cada fotograma para facilitar que la
+             * propia carga se pueda pausar cuando la aplicación pasa a segundo plano).
+             */
+            void load_textures ();
+
+            /**
+             * En este método se crean los sprites cuando termina la carga de texturas.
+             */
+            void create_sprites ();
 
             /**
              * Se llama cada vez que se debe reiniciar el juego. En concreto la primera vez y cada
@@ -204,8 +212,6 @@ using namespace model;
              * Actualiza el estado del juego cuando el estado de la escena es RUNNING.
              */
             void run_simulation (float time);
-
-
 
             /**
              * Hace que el player derecho se mueva hacia el punto de la pantalla que toca el usuario.

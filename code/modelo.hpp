@@ -16,6 +16,10 @@ namespace model {
     class Casilla
     {
     private:
+
+        int posX = 0;                           // Coordenada X
+        int posY = 0;                           // Coordenada Y
+
         int valorBomba;                         // Si es 0 no es una bomba, si es 1 lo es
                                                 // (podría ser un bool pero lo prefiero en int para conteo de bombas)
         int valorMultp;                         // Multiplica la puntuación total por si mismo
@@ -40,6 +44,10 @@ namespace model {
           */
         Casilla(int percent[]);  // Recibe un array con porcentajes para alterar los actuales (por si se requiere cambiarlos)
 
+        int getX()          { return posX;          }
+
+        int getY()          { return posY;          }
+
         int getValorBomba() { return valorBomba;    }
 
         int getValorMultp() { return valorMultp;    }
@@ -51,6 +59,10 @@ namespace model {
         //    int percents[4] = {percentMultp[0], percentMultp[1], percentMultp[2], percentBomba};
         //    return percents;
         //}
+
+        void setX(int x)          { posX = x;         }
+
+        void setY(int y)          { posY = y;         }
 
         void setValorBomba(int b){ valorBomba    = b; }
 
