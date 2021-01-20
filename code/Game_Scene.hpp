@@ -94,8 +94,8 @@ using namespace model;
             unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
 
-            float                 x;                        ///< Denota la coordenada X de donde pulsa el jugador
-            float                 y;                        ///< Denota la coordenada X de donde pulsa el jugador
+            float               scene_x;                        ///< Denota la coordenada X de donde pulsa el jugador
+            float               scene_y;                        ///< Denota la coordenada X de donde pulsa el jugador
 
             Texture_Map         textures;                 ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
             Sprite_List         sprites;                  ///< Lista en la que se guardan shared_ptr a los sprites creados.

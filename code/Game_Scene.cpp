@@ -13,7 +13,7 @@
 #include <cstdlib>
 #include <basics/Canvas>
 #include <basics/Director>
-// #include <basics/log>
+// #include <basics/log> // basics::log.d("message");
 
 using namespace basics;
 using namespace std;
@@ -77,7 +77,6 @@ namespace game
         state     = LOADING;
         suspended = true;
         gameplay  = UNINITIALIZED;
-
         return true;
     }
 
@@ -112,18 +111,18 @@ namespace game
 
                 //case ID(touch-moved):
 
-
                 case ID(touch-ended):  // El usuario deja de tocar la pantalla
                 {
-                    x = *event[ID(x)].as< var::Float > ();
-                    y = *event[ID(y)].as< var::Float > ();
-                    Point2f p{ x, y };  // Guarda el último punto tocado
+                    scene_x = *event[ID(x)].as< var::Float > ();
+                    scene_y = *event[ID(y)].as< var::Float > ();
+                    Point2f touched_point{scene_x, scene_y};  // Guarda el último punto tocado
 
                     for (int i = 0; i < 25; ++i) //Recorre las casillas y sus sprites asociados
                     {
-                        // Si el punto está contenido en el sprite y la casilla no ha sido desvelada
-                        if(grafico_casillas[i]->contains(p) && !casillas[i]->getDesvelada())
+                        // Si el punto está contenido en el sprite && la casilla no ha sido desvelada
+                        if(grafico_casillas[i]->contains(touched_point) && !casillas[i]->getDesvelada())
                         {
+                            casillas[i]->setDesvelada(true);
                             Id id = check_ID(casillas[i]);
                             Sprite_Handle card(new Sprite(textures[id].get()));
                             card->set_position({casillas[i]->getX(), casillas[i]->getY()});
@@ -237,10 +236,10 @@ namespace game
     {
         Id id;
 
-        if(casilla->getValorBomba() == 1) id = ID(bomb);
+        if(casilla->getValorBomba() == 1) id = ID(bomb);  // Se valora si es una bomba
         else
         {
-            switch (casilla->getValorMultp())
+            switch (casilla->getValorMultp()) // En caso de no ser bomba, se valora su multiplicador
             {
                 case 1: id = ID(one  ); break;
                 case 2: id = ID(two  ); break;
@@ -311,7 +310,7 @@ namespace game
         for (int i = 0; i < 6; ++i, ++yCol, ++xFil)
         {
             //---------------------------------Columna Info---------------------------------------//
-            if(i < 5) // Evita crear 2 veces la esquina
+            if(i < 5) // Evita crear 2 veces la esquina inferior derecha (casilla blanca)
             {
                 xLoc = xCol + 1; // Ajustar las posiciones para multiplicar con ellas
                 yLoc = yCol + 1; //
