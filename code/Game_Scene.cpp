@@ -237,7 +237,7 @@ namespace game
             yLoc = c + 1; //
             casillas[i] = &tablero.matrizTablero[f][c]; // Guardar las direcciones de las casillas del tablero
 
-            //casillas[i]->setDesvelada(true);
+            casillas[i]->setDesvelada(true);
 
             if(!casillas[i]->getDesvelada()) id = ID(down);
             else
@@ -275,36 +275,38 @@ namespace game
         Id id = ID(info);
 
         //Columna
-        int f = 5;
-        int c = 0;
-        for (int i = 0; i < 5; ++i, ++c)
-        {
-            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
-            yLoc = c + 1; //
-
-            Sprite_Handle card(new Sprite(textures[id].get()));
-            card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
-            card->set_scale(0.40f);
-            //grafico_casillas[i] = card.get();
-            sprites.push_back(card);
-
-        }
+        int xCol = 5;
+        int yCol = 0;
 
         //Fila
-        f = 0;
-        c = -1;
-        for (int i = 0; i < 6; ++i, ++f)
+        int xFil = 0;
+        int yFil = -1;
+
+        for (int i = 0; i < 6; ++i, ++yCol, ++xFil)
         {
-            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
-            yLoc = c + 1; //
+            //---------------------------------Columna Info---------------------------------------//
+            if(i < 5) // Evita crear 2 veces la esquina
+            {
+                xLoc = xCol + 1; // Ajustar las posiciones para multiplicar con ellas
+                yLoc = yCol + 1; //
+
+                Sprite_Handle card(new Sprite(textures[id].get()));
+                card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
+                card->set_scale(0.40f);
+                sprites.push_back(card);
+            }
+
+            //-----------------------------------Fila Info----------------------------------------//
+            xLoc = xFil + 1; // Ajustar las posiciones para multiplicar con ellas
+            yLoc = yFil + 1; //
 
             if(i == 5) id = ID(blank);
 
             Sprite_Handle card(new Sprite(textures[id].get()));
             card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
             card->set_scale(0.40f);
-            //grafico_casillas[i] = card.get();
             sprites.push_back(card);
+
         }
     }
 
@@ -312,27 +314,37 @@ namespace game
     {
         int xLoc = 0;
         int yLoc = 0;
+        int x = 0;
+        int y = 0;
 
-        int puntosMargen;  // Márgenes dinámicos para recolocar los números en caso de tener 2 cifras
-        int bombasMargen;  //
+        int puntosMargen;       // Márgenes dinámicos para recolocar los números
+        int bombasMargen;       // en caso de tener 2 cifras
 
-        wstring puntos;    // Texto a escribir
-        wstring bombas;    //
-
+        wstring puntosCol;      // Texto a escribir
+        wstring bombasCol;      //
+        wstring puntosFil;      //
+        wstring bombasFil;      //
 
         //Columna
-        int f = 5;
-        int c = 0;
-        for (int i = 0; i < 5; ++i, ++c)
+        int colX = 5;           // Posiciones números columna
+        int colY = 0;           //
+
+        //Fila
+        int filX = 0;           // Posiciones números fila
+        int filY = -1;          //
+
+        for (int i = 0; i < 5; ++i, ++colY, ++filX)
         {
-            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
-            yLoc = c + 1; //
+            //-------------------------------Números Columna--------------------------------------//
 
-            puntos = to_wstring(tablero.puntosColumna[i]);
-            bombas = to_wstring(tablero.bombasColumna[i]);
+            xLoc = colX + 1; // Ajustar las posiciones para multiplicar con ellas
+            yLoc = colY + 1; //
 
-            Text_Layout puntos_text(*font, puntos);
-            Text_Layout bombas_text(*font, bombas);
+            puntosCol = to_wstring(tablero.puntosColumna[i]);
+            bombasCol = to_wstring(tablero.bombasColumna[i]);
+
+            Text_Layout puntos_textCol(*font, puntosCol);
+            Text_Layout bombas_textCol(*font, bombasCol);
 
             if(tablero.puntosColumna[i] > 9) puntosMargen = 3;
             else puntosMargen = 15;
@@ -340,24 +352,24 @@ namespace game
             if(tablero.bombasColumna[i] > 9) bombasMargen = 3;
             else bombasMargen = 15;
 
-            canvas->draw_text({puntosMargen + posXTablero + xLoc * escalar, 57 + posYTablero + yLoc * escalar}, puntos_text);
-            canvas->draw_text({bombasMargen + posXTablero + xLoc * escalar, 6 + posYTablero + yLoc * escalar}, bombas_text);
+            x = puntosMargen + posXTablero + xLoc * escalar;
+            y = 57 + posYTablero + yLoc * escalar;
+            canvas->draw_text({x, y}, puntos_textCol);
 
-        }
+            x = bombasMargen + posXTablero + xLoc * escalar;
+            y = 6 + posYTablero + yLoc * escalar;
+            canvas->draw_text({x, y}, bombas_textCol);
 
-        //Fila
-        f = 0;
-        c = -1;
-        for (int i = 0; i < 5; ++i, ++f)
-        {
-            xLoc = f + 1; // Ajustar las posiciones para multiplicar con ellas
-            yLoc = c + 1; //
+            //----------------------------------Números Fila--------------------------------------//
 
-            puntos = to_wstring(tablero.puntosFila[i]);
-            bombas = to_wstring(tablero.bombasFila[i]);
+            xLoc = filX + 1; // Ajustar las posiciones para multiplicar con ellas
+            yLoc = filY + 1; //
 
-            Text_Layout puntos_text(*font, puntos);
-            Text_Layout bombas_text(*font, bombas);
+            puntosFil = to_wstring(tablero.puntosFila[i]);
+            bombasFil = to_wstring(tablero.bombasFila[i]);
+
+            Text_Layout puntos_textFil(*font, puntosFil);
+            Text_Layout bombas_textFil(*font, bombasFil);
 
             if(tablero.puntosFila[i] > 9) puntosMargen = 3;
             else puntosMargen = 15;
@@ -365,8 +377,13 @@ namespace game
             if(tablero.bombasFila[i] > 9) bombasMargen = 3;
             else bombasMargen = 15;
 
-            canvas->draw_text({puntosMargen + posXTablero + xLoc * escalar, 57 + posYTablero + yLoc * escalar}, puntos_text);
-            canvas->draw_text({bombasMargen + posXTablero + xLoc * escalar, 6 + posYTablero + yLoc * escalar}, bombas_text);
+            x = puntosMargen + posXTablero + xLoc * escalar;
+            y = 57 + posYTablero + yLoc * escalar;
+            canvas->draw_text({x, y}, puntos_textFil);
+
+            x = bombasMargen + posXTablero + xLoc * escalar;
+            y = 6 + posYTablero + yLoc * escalar;
+            canvas->draw_text({x, y}, bombas_textFil);
         }
     }
 
