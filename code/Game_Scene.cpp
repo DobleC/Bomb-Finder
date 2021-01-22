@@ -78,6 +78,7 @@ namespace game
         suspended = true;
         gameplay  = UNINITIALIZED;
         return true;
+
     }
 
     // ---------------------------------------------------------------------------------------------

@@ -19,7 +19,7 @@
 #include <basics/opengles/OpenGL_ES2>
 
 using namespace basics;
-using namespace game;
+using namespace game; using namespace intro;
 using namespace std;
 
 int main ()
@@ -30,7 +30,7 @@ int main ()
 
     // Se crea una Game_Scene y se inicia mediante el Director:
 
-    director.run_scene (shared_ptr< Scene >(new Game_Scene));
+    director.run_scene (shared_ptr< Scene >(new Game_Scene)); // Intro_Scene));
 
     return 0;
 }
