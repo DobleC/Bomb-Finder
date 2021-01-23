@@ -15,6 +15,7 @@
     #include <list>
     #include <memory>
 
+    #include <basics/Application>
     #include <basics/Canvas>
     #include <basics/Id>
     #include <basics/Scene>
@@ -22,14 +23,17 @@
     #include <basics/Timer>
     #include <basics/Raster_Font>
     #include <iostream>
+    #include <fstream>
 
     #include "Sprite.hpp"
-    #include "controlador.hpp"
-    #include "modelo.hpp"
+    #include "controlador.hpp" // Incluye modelo
+
 
 
 using namespace graphics;
 using namespace model;
+using namespace controller;
+using namespace std;
 
 
     namespace game
@@ -45,12 +49,13 @@ using namespace model;
 
             // Estos typedefs pueden ayudar a hacer el código más compacto y claro:
 
-            typedef std::shared_ptr < Tablero    >     Tablero_Handle;
-            typedef std::unique_ptr< basics::Raster_Font > Font_Handle;
-            typedef std::shared_ptr < Sprite     >     Sprite_Handle;
-            typedef std::list< Sprite_Handle     >     Sprite_List;
-            typedef std::shared_ptr< Texture_2D  >     Texture_Handle;
-            typedef std::map< Id, Texture_Handle >     Texture_Map;
+            typedef shared_ptr < Tablero            >  Tablero_Handle;
+            typedef map< string, unsigned           >  Scores_Handle;
+            typedef unique_ptr< basics::Raster_Font >  Font_Handle;
+            typedef shared_ptr < Sprite             >  Sprite_Handle;
+            typedef list< Sprite_Handle             >  Sprite_List;
+            typedef shared_ptr< Texture_2D          >  Texture_Handle;
+            typedef map< Id, Texture_Handle         >  Texture_Map;
             typedef basics::Graphics_Context::Accessor Context;
 
             /**
@@ -60,6 +65,7 @@ using namespace model;
             {
                 LOADING,
                 RUNNING,
+                NEXTROUND,
                 ERROR
             };
 
@@ -90,16 +96,18 @@ using namespace model;
             State               state;                    ///< Estado de la escena.
             Gameplay_State      gameplay;                 ///< Estado del juego cuando la escena está RUNNING.
             bool                suspended;                ///< true cuando la escena está en segundo plano y viceversa.
+            bool                rondaAcabada = false;
 
             unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
 
-            float               scene_x;                        ///< Denota la coordenada X de donde pulsa el jugador
-            float               scene_y;                        ///< Denota la coordenada X de donde pulsa el jugador
+            float               scene_x;                  ///< Denota la coordenada X de donde pulsa el jugador
+            float               scene_y;                  ///< Denota la coordenada X de donde pulsa el jugador
 
             Texture_Map         textures;                 ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
             Sprite_List         sprites;                  ///< Lista en la que se guardan shared_ptr a los sprites creados.
-            Font_Handle         font;                     ///< Fuente para escribir por pantalla
+            Font_Handle         blackfont;                ///< Fuente para escribir por pantalla
+            Font_Handle         whitefont;                ///< Fuente para escribir por pantalla en blanco
 
             unsigned            posXTablero = 256;        ///< Anchura para colocar en horizontal el tablero.
             const unsigned      posYTablero =  85;        ///< Altura para colocar en vertical el tablero
@@ -109,6 +117,10 @@ using namespace model;
             Sprite              *grafico_casillas[25];    ///< Guarda punteros a los sprites de las casillas
             Canvas              *canvas;                  ///< Guarda puntero al canvas
             Tablero             tablero;                  ///< Guarda la información del tablero
+            Controlador         controlador;
+            unsigned            counter = 0;                  ///< Cuenta los multiplicadores desvelados que son >1
+            string              player_name;              ///< Nombre del player
+            Scores_Handle       scores;                   ///< Record del player
             Timer               timer;                    ///< Cronómetro usado para medir intervalos de tiempo
 
         public:
@@ -179,6 +191,26 @@ using namespace model;
              * En este método crea la información del tablero cuando termina su construcción.
              */
             void create_text ();
+
+            /**
+             * Este método avanza a la siguiente ronda
+             */
+            void next_round ();
+
+            /**
+             * Este método guarda las 10 mejores puntuaciones del usuario en un archivo binario
+             */
+            void save_scores ();
+
+            /**
+             * Este método carga las puntuaciones de un archivo binario
+             */
+            void load_scores ();
+
+            /**
+             * Este método gestiona el array de mejores puntuaciones
+             */
+            void check_scores ();
 
             /**
              * Comprueba la información de una casilla para asociarle una ID de textura.

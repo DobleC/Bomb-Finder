@@ -133,12 +133,12 @@
                     return !(*this == other);
                 }
 
-                operator Numeric_Type * ()
+                explicit operator Numeric_Type * ()
                 {
                     return values;
                 }
 
-                operator const Numeric_Type * () const
+                explicit operator const Numeric_Type * () const
                 {
                     return values;
                 }

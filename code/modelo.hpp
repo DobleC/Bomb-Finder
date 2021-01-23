@@ -27,7 +27,7 @@ namespace model {
 
         int percentBomba = 25;                  // 0%-percentBomba% -> porcentaje de bomba = 1
 
-        int percentMultp[3] = {50, 80, 100};    //  0% -[0]% -> porcentaje de multp = 1
+        int percentMultp[3] = {75, 90, 100};    //  0% -[0]% -> porcentaje de multp = 1
                                                 // [0]%-[1]% -> porcentaje de multp = 2
                                                 // [1]%-[2]% -> porcentaje de multp = 3
     public:
@@ -90,6 +90,7 @@ namespace model {
 
     public:
         Casilla matrizTablero[5][5];
+        int mayoresUno = 0;
         int bombasFila[5]    = {0, 0, 0, 0, 0};
         int bombasColumna[5] = {0, 0, 0, 0, 0};
         int puntosFila[5]    = {0, 0, 0, 0, 0};

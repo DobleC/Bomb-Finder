@@ -14,6 +14,7 @@
 #define BASICS_NATIVE_WINDOW_HEADER
 
     #include <basics/Window>
+    #include <android/window.h>
     #include <android/native_window.h>
 
     namespace basics { namespace internal
@@ -40,10 +41,7 @@
 
         public:
 
-            Native_Window(Id id, ANativeWindow * native_window) : Window(id)
-            {
-                reset_window_resource (native_window);
-            }
+            Native_Window(Id id, ANativeWindow * native_window);
 
            ~Native_Window ()
             {
@@ -61,6 +59,8 @@
             {
                 return graphics.context.get ();
             }
+
+            bool set_full_screen (bool status) override;
 
             Size2u get_size () override
             {

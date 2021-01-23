@@ -128,7 +128,7 @@
 
             Vector operator - (const Vector & other) const
             {
-                return Vector(*this) += other;
+                return Vector(*this) -= other;
             }
 
             const Vector & operator + () const

@@ -20,7 +20,7 @@
     namespace basics
     {
 
-        typedef unsigned Id;
+        typedef unsigned int Id;
 
     }
 

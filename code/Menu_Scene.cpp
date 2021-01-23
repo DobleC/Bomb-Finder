@@ -174,9 +174,11 @@ namespace menu
         // Se asigna un slice del atlas a cada opción del menú según su ID:
 
         options[PLAY   ].slice = atlas->get_slice (ID(play)   );
-        options[SCORES ].slice = atlas->get_slice (ID(scores) );
-        options[HELP   ].slice = atlas->get_slice (ID(help)   );
         options[CREDITS].slice = atlas->get_slice (ID(credits));
+        options[HELP   ].slice = atlas->get_slice (ID(help)   );
+        options[SCORES ].slice = atlas->get_slice (ID(scores) );
+
+
 
         // Se calcula la altura total del menú:
 

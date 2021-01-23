@@ -19,8 +19,7 @@
     #include "Android_Accelerometer.hpp"
     #include "Native_Activity.hpp"
 
-    #include <basics/Log>
-    using namespace basics;
+    #include <basics/assert>
 
     using namespace std;
 
@@ -318,12 +317,12 @@
 
             if (!window)
             {
-                log.d ("reset window");
-
                 window.reset
                 (
                     new Native_Window(default_window_id, native_window)
                 );
+
+                window->set_full_screen (true);
             }
             else
             {

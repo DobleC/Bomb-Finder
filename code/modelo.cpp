@@ -44,6 +44,8 @@ namespace model {
             bombasFila[f] += matrizTablero[f][c].getValorBomba();
             puntosFila[f] += matrizTablero[f][c].getValorMultp();
 
+            if(matrizTablero[f][c].getValorMultp() > 1) ++mayoresUno;
+
             if (c == ladoLength && f < ladoLength) // Salta a la siguiente fila siempre que haya una
             {
                 c = -1;
@@ -92,6 +94,7 @@ namespace model {
             puntosFila[i]    = T.puntosFila[i];
             puntosColumna[i] = T.puntosColumna[i];
         }
+            mayoresUno       = T.mayoresUno;
 
     }
 

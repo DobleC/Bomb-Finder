@@ -24,6 +24,9 @@
 
             std::atomic< Application::State > state;
 
+            const char * internal_data_path = "";
+            const char * external_data_path = "";
+
         public:
 
             State get_state () const override
@@ -39,6 +42,26 @@
             void clear_events ()
             {
                 event_queue.clear ();
+            }
+
+            void set_internal_data_path (const char * value)
+            {
+                internal_data_path = value;
+            }
+
+            void set_external_data_path (const char * value)
+            {
+                external_data_path = value;
+            }
+
+            const char * get_internal_data_path ()
+            {
+                return internal_data_path;
+            }
+
+            const char * get_external_data_path ()
+            {
+                return external_data_path;
             }
 
         };

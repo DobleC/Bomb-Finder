@@ -169,6 +169,8 @@
 
         public:
 
+            virtual bool     set_full_screen (bool status) = 0;
+
             virtual Size2u   get_size   () = 0;
             virtual unsigned get_width  () = 0;
             virtual unsigned get_height () = 0;

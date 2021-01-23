@@ -229,7 +229,7 @@ namespace basics { namespace opengles
 
         glEnableVertexAttribArray  (0);
         glDisableVertexAttribArray (1);
-        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, position.coordinates);
+        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, (const float *)position.coordinates);
         glDrawArrays               (GL_POINTS, 0, 1);
     }
 
@@ -241,7 +241,7 @@ namespace basics { namespace opengles
 
         glEnableVertexAttribArray  (0);
         glDisableVertexAttribArray (1);
-        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, coordinates);
+        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, (const float *)coordinates);
         glDrawArrays               (GL_LINES, 0, 2);
     }
 
@@ -253,7 +253,7 @@ namespace basics { namespace opengles
 
         glEnableVertexAttribArray  (0);
         glDisableVertexAttribArray (1);
-        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, coordinates);
+        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, (const float *)coordinates);
         glDrawArrays               (GL_LINE_STRIP, 0, 4);
     }
 
@@ -265,7 +265,7 @@ namespace basics { namespace opengles
 
         glEnableVertexAttribArray  (0);
         glDisableVertexAttribArray (1);
-        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, coordinates);
+        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, (const float *)coordinates);
         glDrawArrays               (GL_TRIANGLES, 0, 3);
     }
 
@@ -286,7 +286,7 @@ namespace basics { namespace opengles
 
         glEnableVertexAttribArray  (0);
         glDisableVertexAttribArray (1);
-        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, coordinates);
+        glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, (const float *)coordinates);
         glDrawArrays               (GL_LINE_STRIP, 0, 5);
     }
 
@@ -442,6 +442,40 @@ namespace basics { namespace opengles
             glVertexAttribPointer     (  vertex_position_location_t, 2, GL_FLOAT, GL_FALSE, 0, coordinates);
             glVertexAttribPointer     (vertex_texture_uv_location_t, 2, GL_FLOAT, GL_FALSE, 0, texture_uvs);
             glDrawArrays              (GL_TRIANGLE_STRIP, 0, 4);
+        }
+    }
+
+    void Canvas_ES2::fill_circle (const Point2f & center, float radius)
+    {
+        static Point2f vertices[256];
+
+        if (radius > 0)
+        {
+            int vertex_index = 0;
+            int vertex_count = int((2.f * radius * 3.14159265f) / 10.f);
+
+            if (vertex_count <  10) vertex_count = 10;
+            if (vertex_count > 255) vertex_count = 255;
+
+            vertices[vertex_index++] = center;
+
+            for (float angle = 0.f, step = 6.2831853f / float(vertex_count); vertex_index < vertex_count; angle += step)
+            {
+                auto & vertex = vertices[vertex_index++];
+
+                vertex[0] = center[0] + cos (angle) * radius;
+                vertex[1] = center[1] + sin (angle) * radius;
+            }
+
+            vertices[vertex_index][0] = center[0] + radius;
+            vertices[vertex_index][1] = center[1];
+
+            shader_program_f->use ();
+
+            glEnableVertexAttribArray  (0);
+            glDisableVertexAttribArray (1);
+            glVertexAttribPointer      (0, 2, GL_FLOAT, GL_FALSE, 0, vertices);
+            glDrawArrays               (GL_TRIANGLE_FAN, 0, vertex_count + 1);
         }
     }
 

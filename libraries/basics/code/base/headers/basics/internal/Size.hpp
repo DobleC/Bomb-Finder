@@ -13,6 +13,8 @@
 #ifndef BASICS_SIZE_HEADER
 #define BASICS_SIZE_HEADER
 
+    #include <basics/Coordinates>
+
     namespace basics
     {
 
@@ -30,6 +32,9 @@
             typedef Numeric_Type Number;
 
             Number length;      // USAR ARRAYS PARA LOS DATOS Y FUNCIONES PARA LOS ACCESSORS
+
+            Size() = default;
+            Size(const float (& values)[1]) : length(values[0]) { }
 
             Size operator * (const Number & value) const
             {
@@ -57,6 +62,11 @@
 
             Number width;       // USAR ARRAYS PARA LOS DATOS Y FUNCIONES PARA LOS ACCESSORS
             Number height;
+
+            Size() = default;
+            Size(const Numeric_Type & w, const Numeric_Type & h) : width(w), height(h) { }
+            Size(const Numeric_Type (& values)[2]) : width(values[0]), height(values[1]) { }
+            Size(const Coordinates< 2, Numeric_Type > & values) : width(values[0]), height(values[1]) { }
 
             Size operator * (const Number & value) const
             {

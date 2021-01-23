@@ -14,6 +14,7 @@
 
 #if defined(BASICS_ANDROID_OS)
 
+    #include "Android_Application.hpp"
     #include "Native_Activity.hpp"
     #include <basics/Application>
 
@@ -185,6 +186,13 @@
 
         activity->callbacks->onInputQueueCreated        = on_input_queue_created;
         activity->callbacks->onInputQueueDestroyed      = on_input_queue_destroyed;
+
+        auto * android_application = dynamic_cast< basics::internal::Android_Application * >(&basics::application);
+
+        assert(android_application);
+
+        android_application->set_internal_data_path (activity->internalDataPath);
+        android_application->set_external_data_path (activity->externalDataPath);
 
         native_activity->on_create (saved_activity_state, saved_state_size);
     }

@@ -30,7 +30,7 @@ int main ()
 
     // Se crea una Game_Scene y se inicia mediante el Director:
 
-    director.run_scene (shared_ptr< Scene >(new Game_Scene)); // Intro_Scene));
+    director.run_scene (shared_ptr< Scene >(new Intro_Scene));
 
     return 0;
 }

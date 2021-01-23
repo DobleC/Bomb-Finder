@@ -104,14 +104,18 @@
         public:
 
             virtual void clear           () { }
+
             virtual void draw_point      (const Point2f & position) { }
             virtual void draw_segment    (const Point2f & a, const Point2f & b) { }
             virtual void draw_triangle   (const Point2f & a, const Point2f & b, const Point2f & c) { }
-            virtual void fill_triangle   (const Point2f & a, const Point2f & b, const Point2f & c) { }
             virtual void draw_rectangle  (const Point2f & bottom_left, const Size2f & size) { }
+
+            virtual void fill_triangle   (const Point2f & a, const Point2f & b, const Point2f & c) { }
             virtual void fill_rectangle  (const Point2f & bottom_left, const Size2f & size) { }
             virtual void fill_rectangle  (const Point2f & where, const Size2f & size, const Texture_2D   * texture, int handling = CENTER) { }
             virtual void fill_rectangle  (const Point2f & where, const Size2f & size, const Atlas::Slice * slice,   int handling = CENTER) { }
+            virtual void fill_circle     (const Point2f & center, float radius) { }
+
             virtual void draw_text       (const Point2f & where, const Text_Layout & text_layout, int handling = TOP | LEFT);
 
         };

@@ -97,6 +97,7 @@
             void fill_rectangle  (const Point2f & bottom_left, const Size2f & size) override;
             void fill_rectangle  (const Point2f & where, const Size2f & size, const basics::Texture_2D * texture, int handling = CENTER) override;
             void fill_rectangle  (const Point2f & where, const Size2f & size, const Atlas::Slice * slice, int handling = CENTER) override;
+            void fill_circle     (const Point2f & center, float radius) override;
 
         };
 

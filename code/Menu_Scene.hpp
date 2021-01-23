@@ -47,9 +47,9 @@
             enum Option_Id
             {
                 PLAY,
-                SCORES,
                 HELP,
-                CREDITS
+                SCORES,
+                CREDITS,
             };
 
             struct Option

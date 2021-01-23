@@ -13,7 +13,8 @@
 #include <cstdlib>
 #include <basics/Canvas>
 #include <basics/Director>
-// #include <basics/log> // basics::log.d("message");
+
+#include <basics/log> // basics::log.d("message");
 
 using namespace basics;
 using namespace std;
@@ -58,10 +59,6 @@ namespace game
         canvas_width  = 1280;
         canvas_height =  720;
 
-        // Se inicia la semilla del generador de números aleatorios:
-
-        srand (unsigned(time(nullptr)));
-
         // Se inicializan otros atributos:
 
         initialize ();
@@ -74,6 +71,9 @@ namespace game
 
     bool Game_Scene::initialize ()
     {
+        // Se inicia la semilla del generador de números aleatorios:
+        srand (unsigned(time(nullptr)));
+
         state     = LOADING;
         suspended = true;
         gameplay  = UNINITIALIZED;
@@ -114,6 +114,7 @@ namespace game
 
                 case ID(touch-ended):  // El usuario deja de tocar la pantalla
                 {
+                    rondaAcabada = false;
                     scene_x = *event[ID(x)].as< var::Float > ();
                     scene_y = *event[ID(y)].as< var::Float > ();
                     Point2f touched_point{scene_x, scene_y};  // Guarda el último punto tocado
@@ -129,8 +130,26 @@ namespace game
                             card->set_position({casillas[i]->getX(), casillas[i]->getY()});
                             card->set_scale(0.40f);
                             sprites.push_back(card);
+
+                            if(casillas[i]->getValorBomba() == 1) controlador.gameOver();
+                            else
+                            {
+                                controlador.multiplicarPunt(casillas[i]->getValorMultp());
+                                if (casillas[i]->getValorMultp() > 1) ++counter; //AAAAAAA
+
+                            }
                         }
+
+                        if(counter >= tablero.mayoresUno)
+                        {
+                            rondaAcabada = true;
+                            state = NEXTROUND;
+                            timer.reset();
+                        }
+                        else rondaAcabada = false;
                     }
+                    //if(rondaAcabada) next_round();
+
                     break;
                 }
             }
@@ -145,6 +164,7 @@ namespace game
         {
             case LOADING: load_textures  ();     break;
             case RUNNING: run_simulation (time); break;
+            case NEXTROUND: run_simulation (time); break;
             case ERROR:   break;
         }
     }
@@ -176,6 +196,7 @@ namespace game
                 {
                     case LOADING: render_loading   (*canvas); break;
                     case RUNNING: render_playfield (*canvas); break;
+                    case NEXTROUND: render_playfield (*canvas); break;
                     case ERROR:   break;
                 }
             }
@@ -200,7 +221,8 @@ namespace game
 
             if (context)
             {
-                font.reset (new Raster_Font("fonts/impact.fnt", context));
+                blackfont.reset (new Raster_Font("fonts/impact.fnt",      context));
+                whitefont.reset (new Raster_Font("fonts/impactwhite.fnt", context));
 
                 // Se carga la siguiente textura (textures.size() indica cuántas llevamos cargadas):
 
@@ -216,7 +238,7 @@ namespace game
             }
         }
         else
-        if (timer.get_elapsed_seconds () > 1.f)         // Si las texturas se han cargado muy rápido
+        if (timer.get_elapsed_seconds () > 0.5f)         // Si las texturas se han cargado muy rápido
         {                                               // se espera un segundo desde el inicio de
             restart_game   ();                          // la carga antes de pasar al juego para que
             create_sprites ();                          // el mensaje de carga no aparezca y desaparezca
@@ -296,6 +318,10 @@ namespace game
 
     void Game_Scene::create_info ()
     {
+       // Sprite_Handle infoRectangle(new Sprite(textures[ID(blank)].get()));
+       // infoRectangle->set_position({1125, 360});
+       // sprites.push_back(infoRectangle);
+
         int xLoc = 0;
         int yLoc = 0;
         Id id = ID(info);
@@ -346,10 +372,26 @@ namespace game
         int puntosMargen;       // Márgenes dinámicos para recolocar los números
         int bombasMargen;       // en caso de tener 2 cifras
 
+
         wstring puntosCol;      // Texto a escribir
         wstring bombasCol;      //
         wstring puntosFil;      //
         wstring bombasFil;      //
+
+
+        wstring puntos = to_wstring(controlador.getScore());
+        Text_Layout puntos_text(*whitefont, L"Score\n" + puntos);
+        canvas->draw_text({1000, 490}, puntos_text);
+
+        wstring puntosTotales = to_wstring(controlador.getTotalScore());
+        Text_Layout totales_text(*whitefont, L"Total Score\n" + puntosTotales);
+        canvas->draw_text({1000, 350}, totales_text);
+
+        wstring ronda = to_wstring(controlador.getRound());
+        Text_Layout ronda_text(*blackfont, L"R-" +  ronda);
+        if (controlador.getRound() > 9) canvas->draw_text({posXTablero + 5.6f * escalar, posYTablero + 0.3f * escalar}, ronda_text);
+        else canvas->draw_text({posXTablero + 5.7f * escalar, posYTablero + 0.3f * escalar}, ronda_text);
+        //{posXTablero + xLoc * escalar, posYTablero + yLoc * escalar}
 
         //Columna
         int colX = 5;           // Posiciones números columna
@@ -369,8 +411,8 @@ namespace game
             puntosCol = to_wstring(tablero.puntosColumna[i]);
             bombasCol = to_wstring(tablero.bombasColumna[i]);
 
-            Text_Layout puntos_textCol(*font, puntosCol);
-            Text_Layout bombas_textCol(*font, bombasCol);
+            Text_Layout puntos_textCol(*blackfont, puntosCol);
+            Text_Layout bombas_textCol(*blackfont, bombasCol);
 
             if(tablero.puntosColumna[i] > 9) puntosMargen = 3;
             else puntosMargen = 15;
@@ -394,8 +436,8 @@ namespace game
             puntosFil = to_wstring(tablero.puntosFila[i]);
             bombasFil = to_wstring(tablero.bombasFila[i]);
 
-            Text_Layout puntos_textFil(*font, puntosFil);
-            Text_Layout bombas_textFil(*font, bombasFil);
+            Text_Layout puntos_textFil(*blackfont, puntosFil);
+            Text_Layout bombas_textFil(*blackfont, bombasFil);
 
             if(tablero.puntosFila[i] > 9) puntosMargen = 3;
             else puntosMargen = 15;
@@ -413,6 +455,91 @@ namespace game
         }
     }
 
+    void Game_Scene::next_round()
+    {
+        rondaAcabada = false;
+        counter = 0;
+        controlador.siguienteRonda();
+        sprites.clear();
+        timer.reset();
+        state = LOADING;
+    }
+
+    void Game_Scene::save_scores ()
+    {
+        string path = application.get_internal_data_path () + "/save.data";
+
+        ofstream writer(path, ofstream::binary | ofstream::trunc);
+
+        if (writer)
+        {
+            size_t number_of_scores = scores.size ();
+
+            writer.write (reinterpret_cast< char * >(&number_of_scores), sizeof(number_of_scores));
+
+            for (auto & item : scores)
+            {
+                string   player = item.first;
+                unsigned score  = item.second;
+
+                size_t   player_length = player.length();
+
+                writer.write (reinterpret_cast< char * >(&player_length), sizeof(player_length));
+                writer.write (player.data (), player.length ());
+                writer.write (reinterpret_cast< char * >(&score), sizeof(score));
+            }
+        }
+    }
+
+
+    void Game_Scene::load_scores ()
+    {
+        string path = application.get_internal_data_path () + "/scores.data";
+
+        ifstream reader(path, ofstream::binary);
+
+        if (reader)
+        {
+            scores.clear ();
+
+            size_t number_of_scores;
+
+            reader.read (reinterpret_cast<char*>(&number_of_scores), sizeof(number_of_scores));
+
+            for (int item = 0; item < number_of_scores; ++item)
+            {
+                string   player;
+                unsigned score;
+                size_t   player_length;
+
+                reader.read (reinterpret_cast< char * >(&player_length), sizeof(player_length));
+
+                player.resize (player_length);
+
+                reader.read (&player.front (), player_length);
+                reader.read (reinterpret_cast< char * >(&score), sizeof(score));
+
+                if (!reader.fail () && !reader.bad ())
+                {
+                    scores[player] = score;
+                }
+                else
+                {
+                    //basics::log.e ("ERROR READING THE SCORES!");
+                    scores.clear();
+                    break;
+                }
+            }
+        }
+    }
+
+    void Game_Scene::check_scores()
+    {
+
+
+    }
+
+
     // ---------------------------------------------------------------------------------------------
     // Cuando el juego se inicia por primera vez o cuando se reinicia porque un jugador pierde, se
     // llama a este método para restablecer la posición y velocidad de los sprites:
@@ -421,6 +548,13 @@ namespace game
     {
         Tablero tab;
         tablero = tab;
+
+        if(!controlador)
+        {
+            Controlador cont;
+            controlador = cont;
+        }
+
         posXTablero = canvas_width / 5;
 
         gameplay = WAITING_TO_START;
@@ -455,6 +589,10 @@ namespace game
         for (auto & sprite : sprites)
         {
             sprite->update (time);
+        }
+        if(rondaAcabada)
+        {
+            if (timer.get_elapsed_seconds () > 1.f) next_round();
         }
 
         //update_user ();
@@ -511,6 +649,17 @@ namespace game
                 { loading_texture->get_width (), loading_texture->get_height () },
                   loading_texture
             );
+
+            if(controlador.getRound() > 1)
+            {
+                wstring puntos = to_wstring(controlador.getScore());
+                Text_Layout puntos_text(*whitefont, L"Score\n" + puntos);
+                canvas.draw_text({1000, 490}, puntos_text);
+
+                wstring puntosTotales = to_wstring(controlador.getTotalScore());
+                Text_Layout totales_text(*whitefont, L"Total Score\n" + puntosTotales);
+                canvas.draw_text({1000, 350}, totales_text);
+            }
         }
     }
 

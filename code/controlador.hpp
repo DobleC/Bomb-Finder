@@ -7,13 +7,59 @@
  *
  * rexitah@gmail.com
  */
+
+#include "modelo.hpp"
+
+
+using namespace model;
+
+
 namespace controller
 {
-    void desvelarCasilla();
+    class Controlador
+    {
+    private:
 
-    void multiplicarPunt();
+        unsigned score = 0;
+        unsigned totalScore = 0;
+        unsigned round = 0;
 
-    void gameOver();
+    public:
 
-    void siguienteRonda();
+        Controlador()
+        {
+            ++round;
+        }
+
+        int  getScore()           { return score;        }
+        void setScore(int score)  { this->score = score; }
+
+        int  getTotalScore()           { return totalScore;  }
+        void setTotalScore(int score)  { totalScore = score; }
+
+        int  getRound()           { return round;        }
+        void setRound(int round)  { this->round = round; }
+
+        void multiplicarPunt(int multiplo)
+        {
+            if(score == 0) score += multiplo;
+            else score *= multiplo;
+        };
+
+        void siguienteRonda()
+        {
+            ++round;
+            totalScore += score;
+            score = 0;
+        }
+
+        void gameOver() {  }
+
+        explicit operator bool () const
+        {
+            return round != 0;
+        }
+
+
+    };
 }
