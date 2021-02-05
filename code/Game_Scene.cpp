@@ -28,18 +28,18 @@ namespace game
 
     Game_Scene::Texture_Data Game_Scene::textures_data[] =
     {
-        { ID(loading),"high/sprites/loading.png"          },
-        { ID(nextround),"high/sprites/nextround.png"      },
-        { ID(gameover),"high/sprites/gameover.png"        },
-        { ID(down),   "high/sprites/0facedown.png"        },
-        { ID(one),    "high/sprites/1point.png"           },
-        { ID(two),    "high/sprites/2point.png"           },
-        { ID(three),  "high/sprites/3point.png"           },
-        { ID(bomb),   "high/sprites/4bombshadow.png"      },
-        { ID(info),   "high/sprites/5info.png"            },
-        { ID(blank),  "high/sprites/6blank.png"           },
-        { ID(pause),  "high/sprites/7pause.png"           },
-        { ID(play),   "high/sprites/8play.png"            },
+        { ID(loading),"sprites/loading.png"          },
+        { ID(nextround),"sprites/nextround.png"      },
+        { ID(gameover),"sprites/gameover.png"        },
+        { ID(down),   "sprites/0facedown.png"        },
+        { ID(one),    "sprites/1point.png"           },
+        { ID(two),    "sprites/2point.png"           },
+        { ID(three),  "sprites/3point.png"           },
+        { ID(bomb),   "sprites/4bombshadow.png"      },
+        { ID(info),   "sprites/5info.png"            },
+        { ID(blank),  "sprites/6blank.png"           },
+        { ID(pause),  "sprites/7pause.png"           },
+        { ID(play),   "sprites/8play.png"            },
     };
 
     // Pâra determinar el número de items en el array textures_data, se divide el tamaño en bytes
