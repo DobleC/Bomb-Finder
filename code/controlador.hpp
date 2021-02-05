@@ -26,10 +26,7 @@ namespace controller
 
     public:
 
-        Controlador()
-        {
-            ++round;
-        }
+        Controlador() { round = 1; }
 
         int  getScore()           { return score;        }
         void setScore(int score)  { this->score = score; }
@@ -53,13 +50,14 @@ namespace controller
             score = 0;
         }
 
-        void gameOver() {  }
-
-        explicit operator bool () const
+        void gameOver()
         {
-            return round != 0;
+            totalScore = 0;
+            score = 0;
+            round = 1;
         }
 
+        explicit operator bool () const { return round != 0; }
 
     };
 }

@@ -29,6 +29,8 @@ namespace game
     Game_Scene::Texture_Data Game_Scene::textures_data[] =
     {
         { ID(loading),"high/sprites/loading.png"          },
+        { ID(nextround),"high/sprites/nextround.png"      },
+        { ID(gameover),"high/sprites/gameover.png"        },
         { ID(down),   "high/sprites/0facedown.png"        },
         { ID(one),    "high/sprites/1point.png"           },
         { ID(two),    "high/sprites/2point.png"           },
@@ -114,6 +116,7 @@ namespace game
                 case ID(touch-ended):  // El usuario deja de tocar la pantalla
                 {
                     rondaAcabada = false;
+                    gameOver = false;
                     scene_x = *event[ID(x)].as< var::Float > ();
                     scene_y = *event[ID(y)].as< var::Float > ();
                     Point2f touched_point{scene_x, scene_y};  // Guarda el último punto tocado
@@ -130,22 +133,26 @@ namespace game
                             card->set_scale(0.40f);
                             sprites.push_back(card);
 
-                            if(casillas[i]->getValorBomba() == 1) controlador.gameOver();
+                            if(casillas[i]->getValorBomba() == 1)
+                            {
+                                gameOver = true;
+                                state = NEWROUND;
+                                timer.reset();
+                            }
                             else
                             {
                                 controlador.multiplicarPunt(casillas[i]->getValorMultp());
-                                if (casillas[i]->getValorMultp() > 1) ++counter; //AAAAAAA
-
+                                if (casillas[i]->getValorMultp() > 1) ++counter;
                             }
                         }
 
-                        if(counter >= tablero.mayoresUno)
+                        if(counter >= tablero.mayoresUno && !gameOver)
                         {
                             rondaAcabada = true;
-                            state = NEXTROUND;
+                            state = NEWROUND;
                             timer.reset();
                         }
-                        else rondaAcabada = false;
+                        //else rondaAcabada = false;
                     }
 
                     if(pausaSpr->contains(touched_point))
@@ -212,11 +219,17 @@ namespace game
     {
         if (!suspended) switch (state)
         {
-            case LOADING:   load_textures  ();      break;
-            case RUNNING:   run_simulation (time);  break;
-            case NEXTROUND: run_simulation (time);  break;
-            case PAUSE:     run_pause      (time);  break;
-            case ERROR:                             break;
+            case LOADING:   load_textures  ();  break;
+            case RUNNING:
+                check_endCondition();  break;
+            case NEWROUND:
+                check_endCondition();  break;
+            case NEXTROUND:
+                check_endCondition();  break;
+            case GAMEOVER:
+                check_endCondition();  break;
+            case PAUSE:     run_pause      ();  break;
+            case ERROR:                         break;
         }
     }
 
@@ -245,10 +258,12 @@ namespace game
 
                 switch (state)
                 {
-                    case LOADING:   render_loading   (*canvas); break;
-                    case RUNNING:   render_playfield (*canvas); break;
-                    case NEXTROUND: render_playfield (*canvas); break;
-                    case PAUSE:     render_pause     (*canvas); break;
+                    case LOADING:   render_afterRounds(*canvas); break;
+                    case RUNNING:   render_playfield (*canvas);  break;
+                    case NEWROUND:  render_playfield (*canvas);  break;
+                    case NEXTROUND: render_afterRounds(*canvas); break;
+                    case GAMEOVER:  render_afterRounds(*canvas); break;
+                    case PAUSE:     render_pause     (*canvas);  break;
                     case ERROR:   break;
                 }
             }
@@ -441,14 +456,7 @@ namespace game
         wstring puntosFil;      //
         wstring bombasFil;      //
 
-
-        wstring puntos = to_wstring(controlador.getScore());
-        Text_Layout puntos_text(*whitefont, L"Score\n" + puntos);
-        canvas->draw_text({1000, 490}, puntos_text);
-
-        wstring puntosTotales = to_wstring(controlador.getTotalScore());
-        Text_Layout totales_text(*whitefont, L"Total Score\n" + puntosTotales);
-        canvas->draw_text({1000, 350}, totales_text);
+        print_score();
 
         wstring ronda = to_wstring(controlador.getRound());
         Text_Layout ronda_text(*blackfont, L"R-" +  ronda);
@@ -516,16 +524,6 @@ namespace game
             y = 6 + posYTablero + yLoc * escalar;
             canvas->draw_text({x, y}, bombas_textFil);
         }
-    }
-
-    void Game_Scene::next_round()
-    {
-        rondaAcabada = false;
-        counter = 0;
-        controlador.siguienteRonda();
-        sprites.clear();
-        timer.reset();
-        state = LOADING;
     }
 
     /*void Game_Scene::save_scores () ///////////////////////
@@ -602,6 +600,27 @@ namespace game
 
     }
 
+    void Game_Scene::next_round()
+    {
+        rondaAcabada = false;
+        counter = 0;
+        controlador.siguienteRonda();
+        sprites.clear();
+        timer.reset();
+        state = LOADING;
+    }
+
+    void Game_Scene::game_over()
+    {
+        gameOver = false;
+        counter = 0;
+        controlador.gameOver();
+        sprites.clear();
+        timer.reset();
+        state = LOADING;
+
+    }
+
 
     // ---------------------------------------------------------------------------------------------
     // Cuando el juego se inicia por primera vez o cuando se reinicia porque un jugador pierde, se
@@ -624,45 +643,54 @@ namespace game
     }
 
 
-    void Game_Scene::run_simulation (float time)
+    void Game_Scene::check_endCondition ()
     {
-        // Se actualiza el estado de todos los sprites:
-
-        //for (auto & sprite : sprites)
-        //{
-        //    sprite->update (time);
-        //}
         if(rondaAcabada)
         {
-            if (timer.get_elapsed_seconds () > 1.f) next_round();
+            if (timer.get_elapsed_seconds () > 1.f) state = NEXTROUND;
+            if (timer.get_elapsed_seconds () > 2.f) next_round();
+        }
+        if(gameOver)
+        {
+            if (timer.get_elapsed_seconds () > 1.f) state = GAMEOVER;
+            if (timer.get_elapsed_seconds () > 2.f) game_over();
         }
     }
 
-
-    void Game_Scene::render_loading (Canvas & canvas)
+    void Game_Scene::render_afterRounds(Canvas & canvas)
     {
-        Texture_2D * loading_texture = textures[ID(loading)].get ();
+        Id id;
+
+        switch (state)
+        {
+            case LOADING:   id = ID(loading);     break;
+            case NEXTROUND: id = ID(nextround);   break;
+            case GAMEOVER:  id = ID(gameover);    break;
+        }
+
+        Texture_2D * loading_texture = textures[id].get ();
 
         if (loading_texture)
         {
             canvas.fill_rectangle
             (
                 { canvas_width * .5f, canvas_height * .5f },
-                { loading_texture->get_width (), loading_texture->get_height () },
-                  loading_texture
+                { loading_texture->get_width (), loading_texture->get_height () }, loading_texture
             );
 
-            if(controlador.getRound() > 1)
-            {
-                wstring puntos = to_wstring(controlador.getScore());
-                Text_Layout puntos_text(*whitefont, L"Score\n" + puntos);
-                canvas.draw_text({1000, 490}, puntos_text);
-
-                wstring puntosTotales = to_wstring(controlador.getTotalScore());
-                Text_Layout totales_text(*whitefont, L"Total Score\n" + puntosTotales);
-                canvas.draw_text({1000, 350}, totales_text);
-            }
+            if(state == NEXTROUND || (controlador.getRound() > 1 && state == LOADING)) print_score();
         }
+    }
+
+    void Game_Scene::print_score()
+    {
+        wstring puntos = to_wstring(controlador.getScore());
+        Text_Layout puntos_text(*whitefont, L"Score\n" + puntos);
+        canvas->draw_text({1000, 490}, puntos_text);
+
+        wstring puntosTotales = to_wstring(controlador.getTotalScore());
+        Text_Layout totales_text(*whitefont, L"Total Score\n" + puntosTotales);
+        canvas->draw_text({1000, 350}, totales_text);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -713,7 +741,7 @@ namespace game
 
     }
 
-    void Game_Scene::run_pause (float time)
+    void Game_Scene::run_pause ()
     {
         if (!suspended)
         {

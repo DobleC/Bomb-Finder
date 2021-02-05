@@ -52,8 +52,8 @@ using namespace basics;
 
             // Estos typedefs pueden ayudar a hacer el código más compacto y claro:
 
-            typedef shared_ptr < Tablero            >  Tablero_Handle;
-            typedef map< string, unsigned           >  Scores_Handle;
+            //typedef shared_ptr < Tablero            >  Tablero_Handle;
+            //typedef map< string, unsigned           >  Scores_Handle;
             typedef unique_ptr< basics::Raster_Font >  Font_Handle;
             typedef shared_ptr < Sprite             >  Sprite_Handle;
             typedef list< Sprite_Handle             >  Sprite_List;
@@ -68,7 +68,9 @@ using namespace basics;
             {
                 LOADING,
                 RUNNING,
+                NEWROUND,
                 NEXTROUND,
+                GAMEOVER,
                 PAUSE,
                 ERROR
             };
@@ -105,9 +107,9 @@ using namespace basics;
         private:
 
             State               state;                    ///< Estado de la escena.
-            //Gameplay_State      gameplay;                 ///< Estado del juego cuando la escena está RUNNING.
             bool                suspended;                ///< true cuando la escena está en segundo plano y viceversa.
             bool                rondaAcabada = false;
+            bool                gameOver     = false;
 
             unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
@@ -230,6 +232,11 @@ using namespace basics;
             void check_scores ();
 
             /**
+             * Este método gestiona el gameover
+             */
+            void game_over ();
+
+            /**
              * Comprueba la información de una casilla para asociarle una ID de textura.
              */
             Id check_ID(Casilla *casilla);
@@ -252,17 +259,22 @@ using namespace basics;
             void restart_game ();
 
             /**
-             * Actualiza el estado del juego cuando el estado de la escena es RUNNING.
+             * Actualiza el estado del juego cuando el jugador acaba una ronda
              */
-            void run_simulation (float time);
+            void check_endCondition ();
 
+            /**
+             * Printea la score por pantalla
+             */
+            void print_score ();
 
             /**
              * Dibuja la textura con el mensaje de carga mientras el estado de la escena es LOADING.
-             * La textura con el mensaje se carga la primera para mostrar el mensaje cuanto antes.
+             * Dibuja la textura con el mensaje de nextround mientras el estado de la escena es NEXTROUND.
+             * Dibuja la textura con el mensaje de gameover mientras el estado de la escena es GAMEOVER.
              * @param canvas Referencia al Canvas con el que dibujar la textura.
              */
-            void render_loading (Canvas & canvas);
+            void render_afterRounds (Canvas & canvas);
 
             /**
              * Dibuja la escena de juego cuando el estado de la escena es RUNNING.
@@ -278,9 +290,8 @@ using namespace basics;
 
             /**
             * Genera el atlas cuando el estado de la escena es PAUSE.
-            * @param time Referencia al tiempo trasncurrido.
             */
-            void run_pause (float time);
+            void run_pause ();
 
             /**
              * Establece las propiedades de cada opción si se ha podido cargar el atlas.
