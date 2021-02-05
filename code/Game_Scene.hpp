@@ -22,6 +22,7 @@
     #include <basics/Texture_2D>
     #include <basics/Timer>
     #include <basics/Raster_Font>
+    #include <basics/Atlas>
     #include <iostream>
     #include <fstream>
 
@@ -34,6 +35,7 @@ using namespace graphics;
 using namespace model;
 using namespace controller;
 using namespace std;
+using namespace basics;
 
 
     namespace game
@@ -43,6 +45,7 @@ using namespace std;
         using basics::Timer;
         using basics::Canvas;
         using basics::Texture_2D;
+        using basics::Atlas;
 
         class Game_Scene : public basics::Scene
         {
@@ -66,18 +69,26 @@ using namespace std;
                 LOADING,
                 RUNNING,
                 NEXTROUND,
+                PAUSE,
                 ERROR
             };
 
-            /**
-             * Representa el estado del juego cuando el estado de la escena es RUNNING.
-             */
-            enum Gameplay_State
+            enum Option_Id
             {
-                UNINITIALIZED,
-                WAITING_TO_START,
-                PLAYING,
+                HELP,
+                SCORES,
+                CREDITS,
+                EXIT,
             };
+
+            struct Option
+            {
+                const Atlas::Slice * slice;
+                Point2f position;
+                float   is_pressed;
+            };
+
+            static const unsigned number_of_options = 4;
 
         private:
 
@@ -94,7 +105,7 @@ using namespace std;
         private:
 
             State               state;                    ///< Estado de la escena.
-            Gameplay_State      gameplay;                 ///< Estado del juego cuando la escena está RUNNING.
+            //Gameplay_State      gameplay;                 ///< Estado del juego cuando la escena está RUNNING.
             bool                suspended;                ///< true cuando la escena está en segundo plano y viceversa.
             bool                rondaAcabada = false;
 
@@ -106,6 +117,7 @@ using namespace std;
 
             Texture_Map         textures;                 ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
             Sprite_List         sprites;                  ///< Lista en la que se guardan shared_ptr a los sprites creados.
+            Sprite_List         spritesPause;             ///< Lista en la que se guardan shared_ptr a los sprites creados.
             Font_Handle         blackfont;                ///< Fuente para escribir por pantalla
             Font_Handle         whitefont;                ///< Fuente para escribir por pantalla en blanco
 
@@ -115,13 +127,18 @@ using namespace std;
 
             Casilla             *casillas[25];            ///< Guarda los punteros a las 25 casillas
             Sprite              *grafico_casillas[25];    ///< Guarda punteros a los sprites de las casillas
+            Sprite              *pausaSpr;
+            Sprite              *playSpr;
             Canvas              *canvas;                  ///< Guarda puntero al canvas
             Tablero             tablero;                  ///< Guarda la información del tablero
             Controlador         controlador;
-            unsigned            counter = 0;                  ///< Cuenta los multiplicadores desvelados que son >1
+            unsigned            counter = 0;              ///< Cuenta los multiplicadores desvelados que son >1
             string              player_name;              ///< Nombre del player
-            Scores_Handle       scores;                   ///< Record del player
+            unsigned int        score;                    ///< Record del player
             Timer               timer;                    ///< Cronómetro usado para medir intervalos de tiempo
+
+            Option   options[number_of_options];          ///< Datos de las opciones del menú
+            std::unique_ptr< Atlas > atlas;               ///< Atlas que contiene las imágenes de las opciones del menú
 
         public:
 
@@ -235,21 +252,9 @@ using namespace std;
             void restart_game ();
 
             /**
-             * Cuando se ha reiniciado el juego y el usuario toca la pantalla por primera vez se
-             * pone la bola en movimiento en una dirección al azar.
-             */
-            void start_playing ();
-
-            /**
              * Actualiza el estado del juego cuando el estado de la escena es RUNNING.
              */
             void run_simulation (float time);
-
-            /**
-             * Hace que el player derecho se mueva hacia el punto de la pantalla que toca el usuario.
-             */
-            void update_user ();
-
 
 
             /**
@@ -265,6 +270,29 @@ using namespace std;
              */
             void render_playfield (Canvas & canvas);
 
+            /**
+            * Dibuja la escena de juego cuando el estado de la escena es PAUSE.
+            * @param canvas Referencia al Canvas con el que dibujar.
+            */
+            void render_pause (Canvas & canvas);
+
+            /**
+            * Genera el atlas cuando el estado de la escena es PAUSE.
+            * @param time Referencia al tiempo trasncurrido.
+            */
+            void run_pause (float time);
+
+            /**
+             * Establece las propiedades de cada opción si se ha podido cargar el atlas.
+             */
+            void configure_options ();
+
+            /**
+             * Devuelve el índice de la opción que se encuentra bajo el punto indicado.
+             * @param point Punto que se usará para determinar qué opción tiene debajo.
+             * @return Índice de la opción que está debajo del punto o -1 si no hay alguna.
+             */
+            int option_at (const Point2f & point);
 
         };
 

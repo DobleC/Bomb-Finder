@@ -150,7 +150,7 @@ namespace menu
                         (
                             scale_then_translate_2d
                             (
-                                  option.is_pressed ? 0.75f : 1.f,              // Escala de la opción
+                                  option.is_pressed ? 0.75f : 1.f,                     // Escala de la opción
                                 { option.position[0], option.position[1] }      // Traslación
                             )
                         );

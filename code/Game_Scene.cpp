@@ -36,6 +36,8 @@ namespace game
         { ID(bomb),   "high/sprites/4bombshadow.png"      },
         { ID(info),   "high/sprites/5info.png"            },
         { ID(blank),  "high/sprites/6blank.png"           },
+        { ID(pause),  "high/sprites/7pause.png"           },
+        { ID(play),   "high/sprites/8play.png"            },
     };
 
     // Pâra determinar el número de items en el array textures_data, se divide el tamaño en bytes
@@ -76,7 +78,13 @@ namespace game
 
         state     = LOADING;
         suspended = true;
-        gameplay  = UNINITIALIZED;
+        //gameplay  = UNINITIALIZED;
+
+        for (auto & option : options)
+        {
+            option.is_pressed = false;
+        }
+
         return true;
 
     }
@@ -101,17 +109,8 @@ namespace game
     {
         if (state == RUNNING)               // Se descartan los eventos cuando la escena está LOADING
         {
-            //if (gameplay == WAITING_TO_START)
-            //{
-            //    //start_playing ();           // Se empieza a jugar cuando el usuario toca la pantalla por primera vez
-            //}
-            //else
             switch (event.id)
             {
-                //case ID(touch-started):     // El usuario toca la pantalla
-
-                //case ID(touch-moved):
-
                 case ID(touch-ended):  // El usuario deja de tocar la pantalla
                 {
                     rondaAcabada = false;
@@ -148,7 +147,58 @@ namespace game
                         }
                         else rondaAcabada = false;
                     }
-                    //if(rondaAcabada) next_round();
+
+                    if(pausaSpr->contains(touched_point))
+                    {
+                        playSpr->show();
+                        pausaSpr->hide();
+                        state = PAUSE;
+                    }
+                    break;
+                }
+            }
+        }
+        else if (state == PAUSE) {
+            switch (event.id) {
+                case ID(touch-started):         // El usuario toca la pantalla
+                case ID(touch-moved):
+                {
+                    // Se determina qué opción se ha tocado:
+
+                    Point2f touch_location = { *event[ID(x)].as< var::Float > (), *event[ID(y)].as< var::Float > () };
+                    int     option_touched = option_at (touch_location);
+
+                    // Solo se puede tocar una opción a la vez (para evitar selecciones múltiples),
+                    // por lo que solo una se considera presionada (el resto se "sueltan"):
+
+                    for (int index = 0; index < number_of_options; ++index)
+                    {
+                        options[index].is_pressed = index == option_touched;
+                    }
+                    break;
+                }
+
+                case ID(touch-ended):           // El usuario deja de tocar la pantalla
+                {
+                    // Se "sueltan" todas las opciones:
+
+                    for (auto &option : options) option.is_pressed = false;
+
+                    // Se determina qué opción se ha dejado de tocar la última y se actúa como corresponda:
+
+                    Point2f touch_location = { *event[ID(x)].as< var::Float > (), *event[ID(y)].as< var::Float > () };
+
+                    // if (option_at (touched_point) == PLAY)
+                    // {
+                    //     director.run_scene (shared_ptr< Scene >(new Game_Scene));
+                    // }
+
+                    if (playSpr->contains(touch_location))
+                    {
+                        playSpr->hide();
+                        pausaSpr->show();
+                        state = RUNNING;
+                    }
 
                     break;
                 }
@@ -162,10 +212,11 @@ namespace game
     {
         if (!suspended) switch (state)
         {
-            case LOADING: load_textures  ();     break;
-            case RUNNING: run_simulation (time); break;
-            case NEXTROUND: run_simulation (time); break;
-            case ERROR:   break;
+            case LOADING:   load_textures  ();      break;
+            case RUNNING:   run_simulation (time);  break;
+            case NEXTROUND: run_simulation (time);  break;
+            case PAUSE:     run_pause      (time);  break;
+            case ERROR:                             break;
         }
     }
 
@@ -194,9 +245,10 @@ namespace game
 
                 switch (state)
                 {
-                    case LOADING: render_loading   (*canvas); break;
-                    case RUNNING: render_playfield (*canvas); break;
+                    case LOADING:   render_loading   (*canvas); break;
+                    case RUNNING:   render_playfield (*canvas); break;
                     case NEXTROUND: render_playfield (*canvas); break;
+                    case PAUSE:     render_pause     (*canvas); break;
                     case ERROR:   break;
                 }
             }
@@ -318,10 +370,6 @@ namespace game
 
     void Game_Scene::create_info ()
     {
-       // Sprite_Handle infoRectangle(new Sprite(textures[ID(blank)].get()));
-       // infoRectangle->set_position({1125, 360});
-       // sprites.push_back(infoRectangle);
-
         int xLoc = 0;
         int yLoc = 0;
         Id id = ID(info);
@@ -358,8 +406,23 @@ namespace game
             card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
             card->set_scale(0.40f);
             sprites.push_back(card);
-
         }
+
+        id = ID(play);
+        Sprite_Handle jugar(new Sprite(textures[id].get()));
+        jugar->set_position({1220, 60});
+        jugar->set_scale(0.40f);
+        spritesPause.push_back(jugar);
+        playSpr = jugar.get();
+        playSpr->hide();
+
+        id = ID(pause);
+        Sprite_Handle pausa(new Sprite(textures[id].get()));
+        pausa->set_position({1220, 60});
+        pausa->set_scale(0.40f);
+        spritesPause.push_back(pausa);
+        pausaSpr = pausa.get();
+
     }
 
     void Game_Scene::create_text ()
@@ -465,7 +528,7 @@ namespace game
         state = LOADING;
     }
 
-    void Game_Scene::save_scores ()
+    /*void Game_Scene::save_scores () ///////////////////////
     {
         string path = application.get_internal_data_path () + "/save.data";
 
@@ -492,7 +555,7 @@ namespace game
     }
 
 
-    void Game_Scene::load_scores ()
+    void Game_Scene::load_scores () /////////////////////
     {
         string path = application.get_internal_data_path () + "/scores.data";
 
@@ -531,7 +594,7 @@ namespace game
                 }
             }
         }
-    }
+    }*/
 
     void Game_Scene::check_scores()
     {
@@ -557,85 +620,24 @@ namespace game
 
         posXTablero = canvas_width / 5;
 
-        gameplay = WAITING_TO_START;
+        //gameplay = WAITING_TO_START;
     }
 
-    // ---------------------------------------------------------------------------------------------
-
-    void Game_Scene::start_playing ()
-    {
-        // Se genera un vector de dirección al azar:
-
-        Vector2f random_direction
-        (
-            float(rand () % int(canvas_width ) - int(canvas_width  / 2)),
-            float(rand () % int(canvas_height) - int(canvas_height / 2))
-        );
-
-        // Se hace unitario el vector y se multiplica un el valor de velocidad para que el vector
-        // resultante tenga exactamente esa longitud:
-
-        //ball->set_speed (random_direction.normalized () * ball_speed);
-
-        gameplay = PLAYING;
-    }
-
-    // ---------------------------------------------------------------------------------------------
 
     void Game_Scene::run_simulation (float time)
     {
         // Se actualiza el estado de todos los sprites:
 
-        for (auto & sprite : sprites)
-        {
-            sprite->update (time);
-        }
+        //for (auto & sprite : sprites)
+        //{
+        //    sprite->update (time);
+        //}
         if(rondaAcabada)
         {
             if (timer.get_elapsed_seconds () > 1.f) next_round();
         }
-
-        //update_user ();
-
     }
 
-
-    // ---------------------------------------------------------------------------------------------
-    // Se hace que el player dechero se mueva hacia arriba o hacia abajo según el usuario esté
-    // tocando la pantalla por encima o por debajo de su centro. Cuando el usuario no toca la
-    // pantalla se deja al player quieto.
-
-    void Game_Scene::update_user () // Ejemplo intersects
-    {
-      //  if (right_player->intersects (*top_border))
-      //  {
-      //      // Si el player está tocando el borde superior, no puede ascender:
-//
-      //      right_player->set_position_y (top_border->get_bottom_y () - right_player->get_height () / 2.f);
-      //      right_player->set_speed_y (0);
-      //  }
-      //  else
-      //  if (right_player->intersects (*bottom_border))
-      //  {
-      //      // Si el player está tocando el borde inferior, no puede descender:
-//
-      //      right_player->set_position_y (bottom_border->get_top_y () + right_player->get_height () / 2.f);
-      //      right_player->set_speed_y (0);
-      //  }
-      //  else
-      //  if (follow_target)
-      //  {
-      //      // Si el usuario está tocando la pantalla, se determina si está tocando por encima o por
-      //      // debajo de su centro para establecer si tiene que subir o bajar:
-//
-      //      float delta_y = user_target_y - right_player->get_position_y ();
-//
-      //      if (delta_y < 0.f) right_player->set_speed_y (-player_speed); else
-      //      if (delta_y > 0.f) right_player->set_speed_y (+player_speed);
-      //  }
-      //  else
-      //      right_player->set_speed_y (0);
-    }
 
     void Game_Scene::render_loading (Canvas & canvas)
     {
@@ -677,30 +679,147 @@ namespace game
         canvas.draw_segment ({    0,   360 }, { 1280/4,   360 });           // Medio derecha
         canvas.draw_segment ({    1280 * 0.75,   360 }, { 1280,   360 });   // Medio izquierda
 
-        for (auto & sprite : sprites)
-        {
-            sprite->render (canvas);
-        }
+        for (auto & sprite : sprites)      sprite->render (canvas);
+        for (auto & sprite : spritesPause) sprite->render (canvas);
+
         create_text();
     }
-}
 
-/*
-        void Game_Scene::traverse_tablero(Tablero & tablero) {
+    void Game_Scene::render_pause (Canvas & canvas)
+    {
+        // Se dibuja el slice de cada una de las opciones del menú:
 
-        int f = 0; // #fila
-        int c = 0; // #columna
-        int i = 0; // indice
-        for (; c <= 4; ++c, ++i) // Recorre la matriz fila a fila de izquierda a derecha
+        for (auto & option : options)
         {
-            casillas[i] = &tablero.matrizTablero[f][c]; // Guarda las direcciones de las casillas del tablero
+            canvas.set_transform
+                    (
+                            scale_then_translate_2d
+                                    (
+                                            option.is_pressed ? 0.75f : 1.f,                     // Escala de la opción
+                                            { option.position[0], option.position[1] }      // Traslación
+                                    )
+                    );
 
-            if (c == 4 && f < 4) // Salta a la siguiente fila siempre que haya una
-            {
-                c = -1;
-                ++f;
+            canvas.fill_rectangle ({ 0.f, 0.f }, { option.slice->width, option.slice->height }, option.slice, CENTER | TOP);
+        }
+
+        // Se restablece la transformación aplicada a las opciones para que no afecte a
+        // dibujos posteriores realizados con el mismo canvas:
+
+        canvas.set_transform (Transformation2f());
+
+
+        for (auto & sprite : spritesPause) sprite->render (canvas);
+
+    }
+
+    void Game_Scene::run_pause (float time)
+    {
+        if (!suspended)
+        {
+            Graphics_Context::Accessor context = director.lock_graphics_context();
+
+            if (context) {
+                // Se carga el atlas:
+
+                atlas.reset(new Atlas("menu-scene/pause-menu.sprites", context));
+
+                // Si el atlas está disponible, se inicializan los datos de las opciones del menú:
+
+                if (atlas->good())  configure_options();
             }
         }
     }
 
- */
+    void Game_Scene::configure_options ()
+    {
+        // Se asigna un slice del atlas a cada opción del menú según su ID:
+
+        options[EXIT   ].slice = atlas->get_slice(ID(exit)   );
+        options[CREDITS].slice = atlas->get_slice(ID(credits));
+        options[HELP   ].slice = atlas->get_slice(ID(help)   );
+        options[SCORES ].slice = atlas->get_slice(ID(scores) );
+
+        // Se calcula la altura total del menú:
+
+        float pause_height = 0;
+
+        for (auto & option : options) pause_height += option.slice->height;
+
+        // Se calcula la posición del borde superior del menú en su conjunto de modo que
+        // quede centrado verticalmente:
+
+        float option_top = canvas_height / 2.f + pause_height / 2.f;
+
+        // Se establece la posición del borde superior de cada opción:
+
+        for (unsigned index = 0; index < number_of_options; ++index) {
+            options[index].position = Point2f{canvas_width / 2.f, option_top};
+
+            option_top -= options[index].slice->height;
+        }
+
+        // Se restablece la presión de cada opción en initialize
+
+    }
+
+    int Game_Scene::option_at (const Point2f & point)
+    {
+        for (int index = 0; index < number_of_options; ++index)
+        {
+            const Option & option = options[index];
+
+            if
+            (
+                point[0] > option.position[0] - option.slice->width  &&
+                point[0] < option.position[0] + option.slice->width  &&
+                point[1] > option.position[1] - option.slice->height &&
+                point[1] < option.position[1] + option.slice->height
+            )
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+}
+
+
+// ---------------------------------------------------------------------------------------------
+// Se hace que el player dechero se mueva hacia arriba o hacia abajo según el usuario esté
+// tocando la pantalla por encima o por debajo de su centro. Cuando el usuario no toca la
+// pantalla se deja al player quieto.
+
+//void Game_Scene::update_user () // Ejemplo intersects
+// {
+//  if (right_player->intersects (*top_border))
+//  {
+//      // Si el player está tocando el borde superior, no puede ascender:
+//
+//      right_player->set_position_y (top_border->get_bottom_y () - right_player->get_height () / 2.f);
+//      right_player->set_speed_y (0);
+//  }
+//  else
+//  if (right_player->intersects (*bottom_border))
+//  {
+//      // Si el player está tocando el borde inferior, no puede descender:
+//
+//      right_player->set_position_y (bottom_border->get_top_y () + right_player->get_height () / 2.f);
+//      right_player->set_speed_y (0);
+//  }
+//  else
+//  if (follow_target)
+//  {
+//      // Si el usuario está tocando la pantalla, se determina si está tocando por encima o por
+//      // debajo de su centro para establecer si tiene que subir o bajar:
+//
+//      float delta_y = user_target_y - right_player->get_position_y ();
+//
+//      if (delta_y < 0.f) right_player->set_speed_y (-player_speed); else
+//      if (delta_y > 0.f) right_player->set_speed_y (+player_speed);
+//  }
+//  else
+//      right_player->set_speed_y (0);
+// }
