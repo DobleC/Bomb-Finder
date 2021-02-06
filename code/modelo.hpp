@@ -77,12 +77,10 @@ namespace model {
             }
             percentBomba = p[3];
         }
-
     };
 
     class Tablero
     {
-
     private:
         int ladoLength = 5 - 1;
         int height = 0;
@@ -101,8 +99,7 @@ namespace model {
             calcDatos();
         }
 
-
-        //Tablero(int percent[]) : Casilla{percent}//--------------> Problemas aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        //Tablero(int percent[]) : Casilla{percent}
         //{
         //}
 

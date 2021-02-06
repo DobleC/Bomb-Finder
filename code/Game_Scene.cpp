@@ -82,13 +82,14 @@ namespace game
         suspended = true;
         //gameplay  = UNINITIALIZED;
 
-        for (auto & option : options)
-        {
-            option.is_pressed = false;
-        }
+        // Inicializa a falso el menú de pausa
+        for (auto & option : options) option.is_pressed = false;
+
+        // Carga las puntuaciones anteriores
+        load_scores();
+        //check_scores();
 
         return true;
-
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -133,6 +134,7 @@ namespace game
                             card->set_scale(0.40f);
                             sprites.push_back(card);
 
+                            // Si la casilla es una bomba, activa gameOver para que termine la partida
                             if(casillas[i]->getValorBomba() == 1)
                             {
                                 gameOver = true;
@@ -141,9 +143,11 @@ namespace game
                             }
                             else
                             {
+                                // Obtiene el valor del multiplicador de la casilla y aumenta contador si es <1
                                 controlador.multiplicarPunt(casillas[i]->getValorMultp());
                                 if (casillas[i]->getValorMultp() > 1) ++counter;
                             }
+                            current_score = controlador.getTotalScore() + controlador.getScore();
                         }
 
                         if(counter >= tablero.mayoresUno && !gameOver)
@@ -178,7 +182,7 @@ namespace game
                     // Solo se puede tocar una opción a la vez (para evitar selecciones múltiples),
                     // por lo que solo una se considera presionada (el resto se "sueltan"):
 
-                    for (int index = 0; index < number_of_options; ++index)
+                    for (int index = 0; index < nOptions; ++index)
                     {
                         options[index].is_pressed = index == option_touched;
                     }
@@ -219,17 +223,13 @@ namespace game
     {
         if (!suspended) switch (state)
         {
-            case LOADING:   load_textures  ();  break;
-            case RUNNING:
-                check_endCondition();  break;
-            case NEWROUND:
-                check_endCondition();  break;
-            case NEXTROUND:
-                check_endCondition();  break;
-            case GAMEOVER:
-                check_endCondition();  break;
-            case PAUSE:     run_pause      ();  break;
-            case ERROR:                         break;
+            case LOADING:   load_textures     ();  break;
+            case RUNNING:   check_endCondition();  break;
+            case NEWROUND:  check_endCondition();  break;
+            case NEXTROUND: check_endCondition();  break;
+            case GAMEOVER:  check_endCondition();  break;
+            case PAUSE:     run_pause         ();  break;
+            case ERROR:                            break;
         }
     }
 
@@ -259,12 +259,12 @@ namespace game
                 switch (state)
                 {
                     case LOADING:   render_afterRounds(*canvas); break;
-                    case RUNNING:   render_playfield (*canvas);  break;
-                    case NEWROUND:  render_playfield (*canvas);  break;
+                    case RUNNING:   render_playfield ( *canvas); break;
+                    case NEWROUND:  render_playfield ( *canvas); break;
                     case NEXTROUND: render_afterRounds(*canvas); break;
                     case GAMEOVER:  render_afterRounds(*canvas); break;
-                    case PAUSE:     render_pause     (*canvas);  break;
-                    case ERROR:   break;
+                    case PAUSE:     render_pause     ( *canvas); break;
+                    case ERROR:                                      break;
                 }
             }
         }
@@ -361,13 +361,8 @@ namespace game
             casillas[i]->setX(x);
             casillas[i]->setY(y);
 
-            //casillas[i]->setDesvelada(true);
-
             if(!casillas[i]->getDesvelada()) id = ID(down);
-            else
-            {
-                id = check_ID(casillas[i]);
-            }
+            else id = check_ID(casillas[i]);
 
             Sprite_Handle card(new Sprite(textures[id].get()));
             card->set_position({x, y});
@@ -526,99 +521,87 @@ namespace game
         }
     }
 
-    /*void Game_Scene::save_scores () ///////////////////////
+    void Game_Scene::save_scores ()
     {
-        string path = application.get_internal_data_path () + "/save.data";
+        check_scores();
+        //for (int i = 0; i < nScore; ++i) highscores[i] = 0;  //<--- Borrar datos
 
+        string path = application.get_internal_data_path () + "/scores.data";
         ofstream writer(path, ofstream::binary | ofstream::trunc);
 
         if (writer)
         {
-            size_t number_of_scores = scores.size ();
-
-            writer.write (reinterpret_cast< char * >(&number_of_scores), sizeof(number_of_scores));
-
-            for (auto & item : scores)
+            for (int i = 0; i < nScore; ++i)
             {
-                string   player = item.first;
-                unsigned score  = item.second;
-
-                size_t   player_length = player.length();
-
-                writer.write (reinterpret_cast< char * >(&player_length), sizeof(player_length));
-                writer.write (player.data (), player.length ());
+                unsigned score  = highscores[i];
                 writer.write (reinterpret_cast< char * >(&score), sizeof(score));
             }
         }
     }
 
 
-    void Game_Scene::load_scores () /////////////////////
+    void Game_Scene::load_scores ()
     {
-        string path = application.get_internal_data_path () + "/scores.data";
+        int i = 0;
+        for (i = 0; i < nScore; ++i) highscores[i] = 0;  // Inicializa el array a 0
 
+        string path = application.get_internal_data_path () + "/scores.data";
         ifstream reader(path, ofstream::binary);
 
         if (reader)
         {
-            scores.clear ();
-
-            size_t number_of_scores;
-
-            reader.read (reinterpret_cast<char*>(&number_of_scores), sizeof(number_of_scores));
-
-            for (int item = 0; item < number_of_scores; ++item)
+            for (i = 0; i < nScore; ++i)
             {
-                string   player;
                 unsigned score;
-                size_t   player_length;
-
-                reader.read (reinterpret_cast< char * >(&player_length), sizeof(player_length));
-
-                player.resize (player_length);
-
-                reader.read (&player.front (), player_length);
                 reader.read (reinterpret_cast< char * >(&score), sizeof(score));
 
-                if (!reader.fail () && !reader.bad ())
-                {
-                    scores[player] = score;
-                }
-                else
-                {
-                    //basics::log.e ("ERROR READING THE SCORES!");
-                    scores.clear();
-                    break;
-                }
+                if (!reader.fail () && !reader.bad ()) highscores[i] = score; // Si no hay problemas
+                else highscores[i] = 0; // Si los hay
             }
         }
-    }*/
+    }
 
     void Game_Scene::check_scores()
     {
+        unsigned aux = 0;
+        unsigned score = current_score;
 
-
+        for (int i = 0; i < nScore; ++i)
+        {
+            if(highscores[i] <= score && score > 0)
+            {
+                aux = highscores[i];
+                highscores[i] = score;
+                score = aux;
+            }
+            basics::log.d("High Score " + to_string(i) + " = " + to_string(highscores[i]));
+        }
     }
 
     void Game_Scene::next_round()
     {
         rondaAcabada = false;
-        counter = 0;
         controlador.siguienteRonda();
-        sprites.clear();
-        timer.reset();
-        state = LOADING;
+
+        clear_round();
     }
 
     void Game_Scene::game_over()
     {
+        save_scores();
         gameOver = false;
-        counter = 0;
         controlador.gameOver();
+
+        clear_round();
+    }
+
+    void Game_Scene::clear_round()
+    {
+        counter = 0;
         sprites.clear();
+        spritesPause.clear();
         timer.reset();
         state = LOADING;
-
     }
 
 
@@ -638,8 +621,6 @@ namespace game
         }
 
         posXTablero = canvas_width / 5;
-
-        //gameplay = WAITING_TO_START;
     }
 
 
@@ -781,7 +762,7 @@ namespace game
 
         // Se establece la posición del borde superior de cada opción:
 
-        for (unsigned index = 0; index < number_of_options; ++index) {
+        for (unsigned index = 0; index < nOptions; ++index) {
             options[index].position = Point2f{canvas_width / 2.f, option_top};
 
             option_top -= options[index].slice->height;
@@ -793,7 +774,7 @@ namespace game
 
     int Game_Scene::option_at (const Point2f & point)
     {
-        for (int index = 0; index < number_of_options; ++index)
+        for (int index = 0; index < nOptions; ++index)
         {
             const Option & option = options[index];
 

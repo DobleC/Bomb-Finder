@@ -52,13 +52,12 @@ using namespace basics;
 
             // Estos typedefs pueden ayudar a hacer el código más compacto y claro:
 
-            //typedef shared_ptr < Tablero            >  Tablero_Handle;
-            //typedef map< string, unsigned           >  Scores_Handle;
             typedef unique_ptr< basics::Raster_Font >  Font_Handle;
             typedef shared_ptr < Sprite             >  Sprite_Handle;
             typedef list< Sprite_Handle             >  Sprite_List;
             typedef shared_ptr< Texture_2D          >  Texture_Handle;
             typedef map< Id, Texture_Handle         >  Texture_Map;
+            typedef std::unique_ptr< Atlas          >  Atlas_Handle;
             typedef basics::Graphics_Context::Accessor Context;
 
             /**
@@ -75,6 +74,9 @@ using namespace basics;
                 ERROR
             };
 
+            /**
+             * Opciones del menú de pausa.
+             */
             enum Option_Id
             {
                 HELP,
@@ -83,6 +85,9 @@ using namespace basics;
                 EXIT,
             };
 
+            /**
+             * Estructura opción.
+             */
             struct Option
             {
                 const Atlas::Slice * slice;
@@ -90,7 +95,7 @@ using namespace basics;
                 float   is_pressed;
             };
 
-            static const unsigned number_of_options = 4;
+
 
         private:
 
@@ -99,17 +104,14 @@ using namespace basics;
              */
             static struct   Texture_Data { Id id; const char * path; } textures_data[];
 
-            /**
-             * Número de items que hay en el array textures_data.
-             */
-            static unsigned textures_count;
-
-        private:
+            static unsigned       textures_count;         ///< Número de items que hay en el array textures_data.
+            static const unsigned nOptions = 4;           ///< Número de opciones en el menú de pausa
+            static const unsigned nScore = 10;            ///< Número de highscores que se guardan
 
             State               state;                    ///< Estado de la escena.
-            bool                suspended;                ///< true cuando la escena está en segundo plano y viceversa.
-            bool                rondaAcabada = false;
-            bool                gameOver     = false;
+            bool                suspended;                ///< True cuando la escena está en segundo plano y viceversa.
+            bool                rondaAcabada = false;     ///< Cuando se vuelve true, se acaba la ronda y se pasa a la siguiente.
+            bool                gameOver     = false;     ///< Cuando se vuelve true, se acaba la partida y se reinicia
 
             unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
@@ -135,12 +137,13 @@ using namespace basics;
             Tablero             tablero;                  ///< Guarda la información del tablero
             Controlador         controlador;
             unsigned            counter = 0;              ///< Cuenta los multiplicadores desvelados que son >1
-            string              player_name;              ///< Nombre del player
-            unsigned int        score;                    ///< Record del player
+
+            unsigned            current_score = 0;        ///< Record del player actual
+            unsigned            highscores[nScore];       ///< Colección de records del player
             Timer               timer;                    ///< Cronómetro usado para medir intervalos de tiempo
 
-            Option   options[number_of_options];          ///< Datos de las opciones del menú
-            std::unique_ptr< Atlas > atlas;               ///< Atlas que contiene las imágenes de las opciones del menú
+            Option              options[nOptions];        ///< Datos de las opciones del menú de pausa
+            Atlas_Handle        atlas;                    ///< Atlas que contiene las imágenes de las opciones de pausa
 
         public:
 
@@ -207,7 +210,7 @@ using namespace basics;
             void create_info ();
 
             /**
-             * En este método crea la información del tablero cuando termina su construcción.
+             * En este método crea y actualiza los textos del juego.
              */
             void create_text ();
 
@@ -215,6 +218,16 @@ using namespace basics;
              * Este método avanza a la siguiente ronda
              */
             void next_round ();
+
+            /**
+             * Este método termina la partida
+             */
+            void game_over ();
+
+            /**
+             * Este método restablece los valores entre rondas / tras un gameover
+             */
+            void clear_round ();
 
             /**
              * Este método guarda las 10 mejores puntuaciones del usuario en un archivo binario
@@ -230,11 +243,6 @@ using namespace basics;
              * Este método gestiona el array de mejores puntuaciones
              */
             void check_scores ();
-
-            /**
-             * Este método gestiona el gameover
-             */
-            void game_over ();
 
             /**
              * Comprueba la información de una casilla para asociarle una ID de textura.

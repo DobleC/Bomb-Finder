@@ -13,16 +13,17 @@
 namespace model {
 
     Casilla::Casilla() {
-        int randomMult = rand() % 100;
+        int randomMult =  rand() % 100;
         int randomBomba = rand() % 100;
 
         // Según el valor de randomMult asocia un multiplicador del 1 al 3
-        if (randomMult < percentMultp[0]) valorMultp = 1;
+        if      (randomMult < percentMultp[0]) valorMultp = 1;
         else if (randomMult < percentMultp[1]) valorMultp = 2;
         else if (randomMult < percentMultp[2]) valorMultp = 3;
 
         // Según el valor de randomBomba vuelve a la casilla una bomba, en cuyo caso hace su multiplicador 0
-        if (randomBomba < percentBomba) {
+        if (randomBomba < percentBomba)
+        {
             valorBomba = 1;
             valorMultp = 0;
         } else valorBomba = 0;
@@ -44,7 +45,7 @@ namespace model {
             bombasFila[f] += matrizTablero[f][c].getValorBomba();
             puntosFila[f] += matrizTablero[f][c].getValorMultp();
 
-            if(matrizTablero[f][c].getValorMultp() > 1) ++mayoresUno;
+            if(matrizTablero[f][c].getValorMultp() > 1) ++mayoresUno; // Cuenta el número de multiplos >1
 
             if (c == ladoLength && f < ladoLength) // Salta a la siguiente fila siempre que haya una
             {
@@ -87,15 +88,15 @@ namespace model {
         }
     }
 
-    void Tablero::copiarArrays(Tablero & T) {
-        for (int i = 0; i < 5; ++i) {
+    void Tablero::copiarArrays(Tablero & T)
+    {
+        for (int i = 0; i < 5; ++i)
+        {
             bombasFila[i]    = T.bombasFila[i];
             bombasColumna[i] = T.bombasColumna[i];
             puntosFila[i]    = T.puntosFila[i];
             puntosColumna[i] = T.puntosColumna[i];
         }
             mayoresUno       = T.mayoresUno;
-
     }
-
 };
