@@ -276,7 +276,7 @@ using namespace basics;
             /**
              * Printea la score por pantalla
              */
-            void print_score ();
+            void print_scores ();
 
             /**
              * Dibuja la textura con el mensaje de carga mientras el estado de la escena es LOADING.

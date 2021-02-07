@@ -82,8 +82,29 @@ namespace menu
                     {
                         director.run_scene (shared_ptr< Scene >(new Game_Scene));
                     }
-
+                    else if (option_at (touch_location) == SCORES)
+                    {
+                        gobackSpr->show();
+                        state = SEENSCORE;
+                    }
                     break;
+                }
+            }
+        }
+        else if (state == SEENSCORE)
+        {
+            switch (event.id)
+            {
+                case ID(touch-started):
+                case ID(touch-ended):
+                {
+                    Point2f touch_location = { *event[ID(x)].as< var::Float > (), *event[ID(y)].as< var::Float > () };
+
+                    if (gobackSpr->contains(touch_location) && state == SEENSCORE)
+                    {
+                        state = READY;
+                        gobackSpr->hide();
+                    }
                 }
             }
         }
@@ -99,16 +120,25 @@ namespace menu
 
             if (context)
             {
-                // Se carga el atlas:
+                whitefont.reset (new Raster_Font("fonts/impactwhite.fnt", context));
+                gobackTexture = Texture_2D::create (ID(back), context, "sprites/9back.png");
 
+                context->add(gobackTexture);
+
+                Sprite_Handle atras(new Sprite(gobackTexture.get()));
+                atras->set_position({1220, 60});
+                atras->set_scale(0.40f);
+                sprites.push_back(atras);
+                gobackSpr = atras.get();
+                gobackSpr->hide();
+
+                // Se carga el atlas:
                 atlas.reset (new Atlas("menu-scene/main-menu.sprites", context));
 
                 // Si el atlas se ha podido cargar el estado es READY y, en otro caso, es ERROR:
-
                 state = atlas->good () ? READY : ERROR;
 
                 // Si el atlas está disponible, se inicializan los datos de las opciones del menú:
-
                 if (state == READY)
                 {
                     configure_options ();
@@ -125,7 +155,7 @@ namespace menu
         {
             // El canvas se puede haber creado previamente, en cuyo caso solo hay que pedirlo:
 
-            Canvas * canvas = context->get_renderer< Canvas > (ID(canvas));
+            canvas = context->get_renderer< Canvas > (ID(canvas));
 
             // Si no se ha creado previamente, hay que crearlo una vez:
 
@@ -139,6 +169,7 @@ namespace menu
             if (canvas)
             {
                 canvas->clear ();
+                for (auto & sprite : sprites)      sprite->render (*canvas);
 
                 if (state == READY)
                 {
@@ -163,6 +194,9 @@ namespace menu
 
                     canvas->set_transform (Transformation2f());
                 }
+
+                else if (state == SEENSCORE) print_scores();
+
             }
         }
     }
@@ -177,8 +211,6 @@ namespace menu
         options[CREDITS].slice = atlas->get_slice (ID(credits));
         options[HELP   ].slice = atlas->get_slice (ID(help)   );
         options[SCORES ].slice = atlas->get_slice (ID(scores) );
-
-
 
         // Se calcula la altura total del menú:
 
@@ -226,6 +258,49 @@ namespace menu
         }
 
         return -1;
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    void Menu_Scene::load_scores ()
+    {
+        int i = 0;
+        for (i = 0; i < nScore; ++i) highscores[i] = 0;  // Inicializa el array a 0
+
+        string path = application.get_internal_data_path () + "/scores.data";
+        ifstream reader(path, ofstream::binary);
+
+        if (reader)
+        {
+            for (i = 0; i < nScore; ++i)
+            {
+                unsigned score;
+                reader.read (reinterpret_cast< char * >(&score), sizeof(score));
+
+                if (!reader.fail () && !reader.bad ()) highscores[i] = score; // Si no hay problemas
+                else highscores[i] = 0; // Si los hay
+            }
+        }
+        scoresLoaded = true;
+    }
+
+    void Menu_Scene::print_scores()
+    {
+        if(!scoresLoaded) load_scores();
+
+        int x = 390;
+        int y = 740;
+
+        for (int i = 0; i < nScore; ++i)
+        {
+            y -= 70;
+            wstring record = to_wstring(highscores[i]);
+            Text_Layout highscore_text(*whitefont, L"High Score  " + to_wstring(i + 1));
+            Text_Layout record_text(*whitefont, L"-   " + record);
+            canvas->draw_text({x, y}, highscore_text);
+            canvas->draw_text({x + 300, y}, record_text);
+        }
+
     }
 
 }

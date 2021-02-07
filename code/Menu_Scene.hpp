@@ -18,6 +18,8 @@
     #include <basics/Scene>
     #include <basics/Size>
     #include <basics/Timer>
+    #include <basics/Texture_2D>
+    #include "Sprite.hpp"
 
     namespace menu
     {
@@ -33,6 +35,10 @@
         class Menu_Scene : public basics::Scene
         {
 
+            typedef std::shared_ptr < graphics::Sprite >  Sprite_Handle;
+            typedef std::list       < Sprite_Handle    >  Sprite_List;
+            typedef std::shared_ptr< basics::Texture_2D > Texture_Handle;
+
             /**
              * Representa el estado de la escena en su conjunto.
              */
@@ -40,7 +46,7 @@
             {
                 LOADING,
                 READY,
-                FINISHED,
+                SEENSCORE,
                 ERROR
             };
 
@@ -60,20 +66,27 @@
             };
 
             static const unsigned number_of_options = 4;
+            static const unsigned nScore = 9;                   ///< Número de highscores que se guardan
 
         private:
 
             State    state;                                     ///< Estado de la escena.
             bool     suspended;                                 ///< true cuando la escena está en segundo plano y viceversa.
+            bool     scoresLoaded = false;
 
+            Canvas * canvas;
             unsigned canvas_width;                              ///< Ancho de la resolución virtual usada para dibujar.
             unsigned canvas_height;                             ///< Alto  de la resolución virtual usada para dibujar.
 
-            Timer    timer;                                     ///< Cronómetro usado para medir intervalos de tiempo.
-
             Option   options[number_of_options];                ///< Datos de las opciones del menú
-
             std::unique_ptr< Atlas > atlas;                     ///< Atlas que contiene las imágenes de las opciones del menú
+
+            std::unique_ptr< basics::Raster_Font > whitefont;   ///< Fuente para escribir por pantalla en blanco
+            unsigned highscores[nScore];                        ///< Colección de records del player
+
+            Texture_Handle        gobackTexture;
+            graphics::Sprite     *gobackSpr;
+            Sprite_List           sprites;                 ///< Lista en la que se guardan shared_ptr a los sprites creados.
 
         public:
 
@@ -142,6 +155,10 @@
              * @return Índice de la opción que está debajo del punto o -1 si no hay alguna.
              */
             int option_at (const Point2f & point);
+
+            void load_scores();
+
+            void print_scores();
 
         };
 

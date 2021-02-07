@@ -473,7 +473,7 @@ namespace game
         wstring puntosFil;      //
         wstring bombasFil;      //
 
-        print_score();
+        print_scores();
 
         wstring ronda = to_wstring(controlador.getRound());
         Text_Layout ronda_text(*blackfont, L"R-" +  ronda);
@@ -681,11 +681,11 @@ namespace game
                 { loading_texture->get_width (), loading_texture->get_height () }, loading_texture
             );
 
-            if(state == NEXTROUND || (controlador.getRound() > 1 && state == LOADING)) print_score();
+            if(state == NEXTROUND || (controlador.getRound() > 1 && state == LOADING)) print_scores();
         }
     }
 
-    void Game_Scene::print_score()
+    void Game_Scene::print_scores()
     {
         if(state != PAUSE)
         {
@@ -755,7 +755,7 @@ namespace game
             // dibujos posteriores realizados con el mismo canvas:
             canvas.set_transform (Transformation2f());
         }
-        else print_score();
+        else print_scores();
 
         for (auto & sprite : spritesPause) sprite->render (canvas);
     }
