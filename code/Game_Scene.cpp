@@ -40,6 +40,7 @@ namespace game
         { ID(blank),  "sprites/6blank.png"           },
         { ID(pause),  "sprites/7pause.png"           },
         { ID(play),   "sprites/8play.png"            },
+        { ID(back),   "sprites/9back.png"            },
     };
 
     // Pâra determinar el número de items en el array textures_data, se divide el tamaño en bytes
@@ -199,16 +200,30 @@ namespace game
 
                     Point2f touch_location = { *event[ID(x)].as< var::Float > (), *event[ID(y)].as< var::Float > () };
 
-                    // if (option_at (touched_point) == PLAY)
-                    // {
-                    //     director.run_scene (shared_ptr< Scene >(new Game_Scene));
-                    // }
+                    if (option_at (touch_location) == SCORES)
+                    {
+                        playSpr->hide();
+                        pausaSpr->hide();
+                        gobackSpr->show();
+                        seenScores = true;
+                    }
 
                     if (playSpr->contains(touch_location))
                     {
-                        playSpr->hide();
-                        pausaSpr->show();
-                        state = RUNNING;
+                        if(!seenScores)
+                        {
+                            playSpr->hide();
+                            pausaSpr->show();
+                            gobackSpr->hide();
+                            state = RUNNING;
+                        }
+                        else
+                        {
+                            seenScores = false;
+                            playSpr->show();
+                            pausaSpr->hide();
+                            gobackSpr->hide();
+                        }
                     }
 
                     break;
@@ -418,6 +433,14 @@ namespace game
             sprites.push_back(card);
         }
 
+        id = ID(back);
+        Sprite_Handle atras(new Sprite(textures[id].get()));
+        atras->set_position({1220, 60});
+        atras->set_scale(0.40f);
+        spritesPause.push_back(atras);
+        gobackSpr = atras.get();
+        gobackSpr->hide();
+
         id = ID(play);
         Sprite_Handle jugar(new Sprite(textures[id].get()));
         jugar->set_position({1220, 60});
@@ -432,7 +455,6 @@ namespace game
         pausa->set_scale(0.40f);
         spritesPause.push_back(pausa);
         pausaSpr = pausa.get();
-
     }
 
     void Game_Scene::create_text ()
@@ -665,28 +687,43 @@ namespace game
 
     void Game_Scene::print_score()
     {
-        wstring puntos = to_wstring(controlador.getScore());
-        Text_Layout puntos_text(*whitefont, L"Score\n" + puntos);
-        canvas->draw_text({1000, 490}, puntos_text);
+        if(state != PAUSE)
+        {
+            wstring puntos = to_wstring(controlador.getScore());
+            Text_Layout puntos_text(*whitefont, L"Score\n" + puntos);
+            canvas->draw_text({1000, 490}, puntos_text);
 
-        wstring puntosTotales = to_wstring(controlador.getTotalScore());
-        Text_Layout totales_text(*whitefont, L"Total Score\n" + puntosTotales);
-        canvas->draw_text({1000, 350}, totales_text);
+            wstring puntosTotales = to_wstring(controlador.getTotalScore());
+            Text_Layout totales_text(*whitefont, L"Total Score\n" + puntosTotales);
+            canvas->draw_text({1000, 350}, totales_text);
+        }
+        else // Si está en pausa printea las high scores
+        {
+            int x = 390;
+            int y = 740;
+
+             for (int i = 0; i < nScore; ++i)
+             {
+                 y -= 70;
+                 wstring record = to_wstring(highscores[i]);
+                 Text_Layout highscore_text(*whitefont, L"High Score  " + to_wstring(i + 1));
+                 Text_Layout record_text(*whitefont, L"-   " + record);
+                 canvas->draw_text({x, y}, highscore_text);
+                 canvas->draw_text({x + 300, y}, record_text);
+             }
+        }
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // Simplemente se dibujan todos los sprites que conforman la escena.
 
+    // Se dibujan todos los sprites que conforman la escena y los textos de esta.
     void Game_Scene::render_playfield (Canvas & canvas)
     {
-        canvas.draw_segment ({    0,   1 }, { 1280,   1 });     // Borde inferior
-        canvas.draw_segment ({    0, 720 }, { 1280, 720 });     // Borde superior
-        canvas.draw_segment ({    1,   0 }, {    1, 720 });     // Borde izquierdo
-        canvas.draw_segment ({ 1280,   0 }, { 1280, 720 });     // Borde derecho
-
-
-        canvas.draw_segment ({    0,   360 }, { 1280/4,   360 });           // Medio derecha
-        canvas.draw_segment ({    1280 * 0.75,   360 }, { 1280,   360 });   // Medio izquierda
+        //canvas.draw_segment ({    0,   1 }, { 1280,   1 });     // Borde inferior
+        //canvas.draw_segment ({    0, 720 }, { 1280, 720 });     // Borde superior
+        //canvas.draw_segment ({    1,   0 }, {    1, 720 });     // Borde izquierdo
+        //canvas.draw_segment ({ 1280,   0 }, { 1280, 720 });     // Borde derecho
+        //canvas.draw_segment ({    0,   360 }, { 1280/4,   360 });           // Medio derecha
+        //canvas.draw_segment ({    1280 * 0.75,   360 }, { 1280,   360 });   // Medio izquierda
 
         for (auto & sprite : sprites)      sprite->render (canvas);
         for (auto & sprite : spritesPause) sprite->render (canvas);
@@ -697,29 +734,30 @@ namespace game
     void Game_Scene::render_pause (Canvas & canvas)
     {
         // Se dibuja el slice de cada una de las opciones del menú:
-
-        for (auto & option : options)
+        if(!seenScores)
         {
-            canvas.set_transform
-                    (
-                            scale_then_translate_2d
-                                    (
-                                            option.is_pressed ? 0.75f : 1.f,                     // Escala de la opción
-                                            { option.position[0], option.position[1] }      // Traslación
-                                    )
-                    );
+            for (auto &option : options)
+            {
+                canvas.set_transform
+                        (
+                                scale_then_translate_2d
+                                        (
+                                                option.is_pressed ? 0.75f : 1.f,                     // Escala de la opción
+                                                {option.position[0], option.position[1]}     // Traslación
+                                        )
+                        );
 
-            canvas.fill_rectangle ({ 0.f, 0.f }, { option.slice->width, option.slice->height }, option.slice, CENTER | TOP);
+                canvas.fill_rectangle({0.f, 0.f}, {option.slice->width, option.slice->height},
+                                      option.slice, CENTER | TOP);
+            }
+
+            // Se restablece la transformación aplicada a las opciones para que no afecte a
+            // dibujos posteriores realizados con el mismo canvas:
+            canvas.set_transform (Transformation2f());
         }
-
-        // Se restablece la transformación aplicada a las opciones para que no afecte a
-        // dibujos posteriores realizados con el mismo canvas:
-
-        canvas.set_transform (Transformation2f());
-
+        else print_score();
 
         for (auto & sprite : spritesPause) sprite->render (canvas);
-
     }
 
     void Game_Scene::run_pause ()

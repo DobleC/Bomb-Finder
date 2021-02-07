@@ -106,12 +106,13 @@ using namespace basics;
 
             static unsigned       textures_count;         ///< Número de items que hay en el array textures_data.
             static const unsigned nOptions = 4;           ///< Número de opciones en el menú de pausa
-            static const unsigned nScore = 10;            ///< Número de highscores que se guardan
+            static const unsigned nScore = 9;             ///< Número de highscores que se guardan
 
             State               state;                    ///< Estado de la escena.
             bool                suspended;                ///< True cuando la escena está en segundo plano y viceversa.
             bool                rondaAcabada = false;     ///< Cuando se vuelve true, se acaba la ronda y se pasa a la siguiente.
             bool                gameOver     = false;     ///< Cuando se vuelve true, se acaba la partida y se reinicia
+            bool                seenScores   = false;
 
             unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
@@ -133,6 +134,7 @@ using namespace basics;
             Sprite              *grafico_casillas[25];    ///< Guarda punteros a los sprites de las casillas
             Sprite              *pausaSpr;
             Sprite              *playSpr;
+            Sprite              *gobackSpr;
             Canvas              *canvas;                  ///< Guarda puntero al canvas
             Tablero             tablero;                  ///< Guarda la información del tablero
             Controlador         controlador;
