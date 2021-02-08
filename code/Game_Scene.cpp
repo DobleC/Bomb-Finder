@@ -671,14 +671,14 @@ namespace game
             case GAMEOVER:  id = ID(gameover);    break;
         }
 
-        Texture_2D * loading_texture = textures[id].get ();
+        Texture_2D * textureRound = textures[id].get ();
 
-        if (loading_texture)
+        if (textureRound)
         {
             canvas.fill_rectangle
             (
-                { canvas_width * .5f, canvas_height * .5f },
-                { loading_texture->get_width (), loading_texture->get_height () }, loading_texture
+                    { canvas_width * .5f, canvas_height * .5f },
+                    {textureRound->get_width (), textureRound->get_height () }, textureRound
             );
 
             if(state == NEXTROUND || (controlador.getRound() > 1 && state == LOADING)) print_scores();
@@ -690,12 +690,12 @@ namespace game
         if(state != PAUSE)
         {
             wstring puntos = to_wstring(controlador.getScore());
-            Text_Layout puntos_text(*whitefont, L"Score\n" + puntos);
-            canvas->draw_text({1000, 490}, puntos_text);
+            Text_Layout puntos_text(*whitefont, L"Round Score\n" + puntos);
+            canvas->draw_text({990, 490}, puntos_text);
 
             wstring puntosTotales = to_wstring(controlador.getTotalScore());
             Text_Layout totales_text(*whitefont, L"Total Score\n" + puntosTotales);
-            canvas->draw_text({1000, 350}, totales_text);
+            canvas->draw_text({990, 360}, totales_text);
         }
         else // Si está en pausa printea las high scores
         {
