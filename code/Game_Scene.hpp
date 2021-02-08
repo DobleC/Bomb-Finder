@@ -41,11 +41,11 @@ using namespace basics;
     namespace game
     {
 
-        using basics::Id;
-        using basics::Timer;
-        using basics::Canvas;
-        using basics::Texture_2D;
-        using basics::Atlas;
+        //using basics::Id;
+        //using basics::Timer;
+        //using basics::Canvas;
+        //using basics::Texture_2D;
+        //using basics::Atlas;
 
         class Game_Scene : public basics::Scene
         {
@@ -57,8 +57,8 @@ using namespace basics;
             typedef list< Sprite_Handle             >  Sprite_List;
             typedef shared_ptr< Texture_2D          >  Texture_Handle;
             typedef map< Id, Texture_Handle         >  Texture_Map;
-            typedef std::unique_ptr< Atlas          >  Atlas_Handle;
-            typedef basics::Graphics_Context::Accessor Context;
+            typedef unique_ptr< Atlas               >  Atlas_Handle;
+            typedef Graphics_Context::Accessor Context;
 
             /**
              * Representa el estado de la escena en su conjunto.

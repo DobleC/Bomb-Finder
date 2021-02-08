@@ -20,7 +20,6 @@ using namespace game;
 
 namespace menu
 {
-
     Menu_Scene::Menu_Scene()
     {
         state         = LOADING;
@@ -87,11 +86,17 @@ namespace menu
                         gobackSpr->show();
                         state = SEENSCORE;
                     }
+                    else if (option_at (touch_location) == HELP)
+                    {
+                        helpSpr->show();
+                        gobackSpr->show();
+                        state = SEENHELP;
+                    }
                     break;
                 }
             }
         }
-        else if (state == SEENSCORE)
+        else if (state == SEENSCORE || state == SEENHELP)
         {
             switch (event.id)
             {
@@ -100,10 +105,11 @@ namespace menu
                 {
                     Point2f touch_location = { *event[ID(x)].as< var::Float > (), *event[ID(y)].as< var::Float > () };
 
-                    if (gobackSpr->contains(touch_location) && state == SEENSCORE)
+                    if (gobackSpr->contains(touch_location))
                     {
                         state = READY;
                         gobackSpr->hide();
+                        helpSpr->hide();
                     }
                 }
             }
@@ -114,36 +120,44 @@ namespace menu
 
     void Menu_Scene::update (float time)
     {
-        if (!suspended) if (state == LOADING)
+        if (!suspended)
+            if (state == LOADING)
         {
-            Graphics_Context::Accessor context = director.lock_graphics_context ();
+                Graphics_Context::Accessor context = director.lock_graphics_context();
 
-            if (context)
-            {
-                whitefont.reset (new Raster_Font("fonts/impactwhite.fnt", context));
-                gobackTexture = Texture_2D::create (ID(back), context, "sprites/9back.png");
+                if (context) {
 
-                context->add(gobackTexture);
+                    whitefont.reset(new Raster_Font("fonts/impactwhite.fnt", context));
+                    gobackTexture = Texture_2D::create (ID(back), context, "sprites/9back.png");
+                    helpTexture   = Texture_2D::create (ID(help), context, "menu-scene/help.png" );
 
-                Sprite_Handle atras(new Sprite(gobackTexture.get()));
-                atras->set_position({1220, 60});
-                atras->set_scale(0.40f);
-                sprites.push_back(atras);
-                gobackSpr = atras.get();
-                gobackSpr->hide();
+                    context->add(gobackTexture);
+                    context->add(helpTexture  );
 
-                // Se carga el atlas:
-                atlas.reset (new Atlas("menu-scene/main-menu.sprites", context));
+                    Sprite_Handle ayuda(new Sprite(helpTexture.get()));
+                    ayuda->set_position({canvas_width * 0.5f, canvas_height * 0.5f});
+                    helpSpr = ayuda.get();
+                    sprites.push_back(ayuda);
+                    helpSpr->hide();
 
-                // Si el atlas se ha podido cargar el estado es READY y, en otro caso, es ERROR:
-                state = atlas->good () ? READY : ERROR;
+                    Sprite_Handle atras(new Sprite(gobackTexture.get()));
+                    atras->set_position({1220, 60});
+                    atras->set_scale(0.40f);
+                    gobackSpr = atras.get();
+                    sprites.push_back(atras);
+                    gobackSpr->hide();
 
-                // Si el atlas está disponible, se inicializan los datos de las opciones del menú:
-                if (state == READY)
-                {
-                    configure_options ();
+                    // Se carga el atlas:
+                    atlas.reset(new Atlas("menu-scene/main-menu.sprites", context));
+
+                    // Si el atlas se ha podido cargar el estado es READY y, en otro caso, es ERROR:
+                    state = atlas->good() ? READY : ERROR;
+
+                    // Si el atlas está disponible, se inicializan los datos de las opciones del menú:
+                    if (state == READY) {
+                        configure_options();
+                    }
                 }
-            }
         }
     }
 
@@ -186,7 +200,7 @@ namespace menu
                             )
                         );
 
-                        canvas->fill_rectangle ({ 0.f, 0.f }, { option.slice->width, option.slice->height }, option.slice, CENTER | TOP);
+                       canvas->fill_rectangle ({ 0.f, 0.f }, { option.slice->width, option.slice->height }, option.slice, CENTER | TOP);
                     }
 
                     // Se restablece la transformación aplicada a las opciones para que no afecte a
@@ -196,7 +210,6 @@ namespace menu
                 }
 
                 else if (state == SEENSCORE) print_scores();
-
             }
         }
     }

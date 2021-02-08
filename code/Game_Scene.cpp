@@ -44,7 +44,7 @@ namespace game
         { ID(back),     "sprites/9back.png"          },
     };
 
-    // Pâra determinar el número de items en el array textures_data, se divide el tamaño en bytes
+    // Para determinar el número de items en el array textures_data, se divide el tamaño en bytes
     // del array completo entre el tamaño en bytes de un item:
 
     unsigned Game_Scene::textures_count = sizeof(textures_data) / sizeof(Texture_Data);

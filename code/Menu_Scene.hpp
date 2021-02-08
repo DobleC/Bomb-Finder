@@ -12,8 +12,10 @@
 #define MENU_SCENE_HEADER
 
     #include <memory>
+    #include <map>
     #include <basics/Atlas>
     #include <basics/Canvas>
+    #include <basics/Id>
     #include <basics/Point>
     #include <basics/Scene>
     #include <basics/Size>
@@ -24,20 +26,23 @@
     namespace menu
     {
 
-        using basics::Atlas;
-        using basics::Timer;
-        using basics::Canvas;
-        using basics::Point2f;
-        using basics::Size2f;
-        using basics::Texture_2D;
-        using basics::Graphics_Context;
+        using namespace basics;
+        //using basics::Atlas;
+        //using basics::Timer;
+        //using basics::Canvas;
+        //using basics::Point2f;
+        //using basics::Size2f;
+        //using basics::Texture_2D;
+        //using basics::Id;
+        //using basics::Graphics_Context;
 
         class Menu_Scene : public basics::Scene
         {
 
-            typedef std::shared_ptr < graphics::Sprite >  Sprite_Handle;
-            typedef std::list       < Sprite_Handle    >  Sprite_List;
-            typedef std::shared_ptr< basics::Texture_2D > Texture_Handle;
+            typedef std::shared_ptr < graphics::Sprite  > Sprite_Handle;
+            typedef std::list       < Sprite_Handle     > Sprite_List;
+            typedef std::shared_ptr < Texture_2D        > Texture_Handle;
+            typedef std::map        < Id, Texture_Handle> Texture_Map;
 
             /**
              * Representa el estado de la escena en su conjunto.
@@ -47,6 +52,7 @@
                 LOADING,
                 READY,
                 SEENSCORE,
+                SEENHELP,
                 ERROR
             };
 
@@ -64,6 +70,8 @@
                 Point2f position;
                 float   is_pressed;
             };
+
+            static struct   Texture_Data { Id id; const char * path; } textures_data[];
 
             static const unsigned number_of_options = 4;
             static const unsigned nScore = 9;                   ///< Número de highscores que se guardan
@@ -85,7 +93,9 @@
             unsigned highscores[nScore];                        ///< Colección de records del player
 
             Texture_Handle        gobackTexture;
+            Texture_Handle        helpTexture;
             graphics::Sprite     *gobackSpr;
+            graphics::Sprite     *helpSpr;
             Sprite_List           sprites;                 ///< Lista en la que se guardan shared_ptr a los sprites creados.
 
         public:
