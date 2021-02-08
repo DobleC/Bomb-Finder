@@ -28,19 +28,20 @@ namespace game
 
     Game_Scene::Texture_Data Game_Scene::textures_data[] =
     {
-        { ID(loading),"sprites/loading.png"          },
+        { ID(loading),  "sprites/loading.png"        },
         { ID(nextround),"sprites/nextround.png"      },
-        { ID(gameover),"sprites/gameover.png"        },
-        { ID(down),   "sprites/0facedown.png"        },
-        { ID(one),    "sprites/1point.png"           },
-        { ID(two),    "sprites/2point.png"           },
-        { ID(three),  "sprites/3point.png"           },
-        { ID(bomb),   "sprites/4bombshadow.png"      },
-        { ID(info),   "sprites/5info.png"            },
-        { ID(blank),  "sprites/6blank.png"           },
-        { ID(pause),  "sprites/7pause.png"           },
-        { ID(play),   "sprites/8play.png"            },
-        { ID(back),   "sprites/9back.png"            },
+        { ID(gameover), "sprites/gameover.png"       },
+        { ID(help),     "menu-scene/help.png"        },
+        { ID(down),     "sprites/0facedown.png"      },
+        { ID(one),      "sprites/1point.png"         },
+        { ID(two),      "sprites/2point.png"         },
+        { ID(three),    "sprites/3point.png"         },
+        { ID(bomb),     "sprites/4bombshadow.png"    },
+        { ID(info),     "sprites/5info.png"          },
+        { ID(blank),    "sprites/6blank.png"         },
+        { ID(pause),    "sprites/7pause.png"         },
+        { ID(play),     "sprites/8play.png"          },
+        { ID(back),     "sprites/9back.png"          },
     };
 
     // Pâra determinar el número de items en el array textures_data, se divide el tamaño en bytes
@@ -200,17 +201,28 @@ namespace game
 
                     Point2f touch_location = { *event[ID(x)].as< var::Float > (), *event[ID(y)].as< var::Float > () };
 
-                    if (option_at (touch_location) == SCORES)
+                    if(!seenScores && !seenHelp)
                     {
-                        playSpr->hide();
-                        pausaSpr->hide();
-                        gobackSpr->show();
-                        seenScores = true;
+                        if (option_at(touch_location) == SCORES) // Si está en pausa y toca SCORES
+                        {
+                            playSpr->hide();
+                            pausaSpr->hide();
+                            gobackSpr->show();
+                            seenScores = true;
+                        }
+
+                        if (option_at(touch_location) == HELP) // Si está en pausa y toca HELP
+                        {
+                            playSpr->hide();
+                            pausaSpr->hide();
+                            gobackSpr->show();
+                            seenHelp = true;
+                        }
                     }
 
                     if (playSpr->contains(touch_location))
                     {
-                        if(!seenScores)
+                        if(!seenScores && !seenHelp) // Si no está en ningún submenu de la pausa vuelve al juego
                         {
                             playSpr->hide();
                             pausaSpr->show();
@@ -219,10 +231,12 @@ namespace game
                         }
                         else
                         {
-                            seenScores = false;
+                            if      (seenScores)  seenScores = false; // Sale de SCORES
+                            else if (seenHelp)    seenHelp   = false; // Sale de HELP
                             playSpr->show();
                             pausaSpr->hide();
                             gobackSpr->hide();
+
                         }
                     }
 
@@ -734,7 +748,7 @@ namespace game
     void Game_Scene::render_pause (Canvas & canvas)
     {
         // Se dibuja el slice de cada una de las opciones del menú:
-        if(!seenScores)
+        if(!seenScores && !seenHelp)
         {
             for (auto &option : options)
             {
@@ -755,7 +769,21 @@ namespace game
             // dibujos posteriores realizados con el mismo canvas:
             canvas.set_transform (Transformation2f());
         }
-        else print_scores();
+        else if (seenScores) print_scores();
+        else if (seenHelp)
+        {
+            Id id = ID(help);
+            Texture_2D * textureHelp = textures[id].get ();
+
+            if (textureHelp)
+            {
+                canvas.fill_rectangle
+                        (
+                                {canvas_width * .5f, canvas_height * .5f},
+                                {textureHelp->get_width(), textureHelp->get_height()}, textureHelp
+                        );
+            }
+        }
 
         for (auto & sprite : spritesPause) sprite->render (canvas);
     }

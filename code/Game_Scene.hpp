@@ -113,6 +113,8 @@ using namespace basics;
             bool                rondaAcabada = false;     ///< Cuando se vuelve true, se acaba la ronda y se pasa a la siguiente.
             bool                gameOver     = false;     ///< Cuando se vuelve true, se acaba la partida y se reinicia
             bool                seenScores   = false;
+            bool                seenHelp     = false;
+
 
             unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
