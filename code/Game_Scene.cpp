@@ -288,6 +288,14 @@ namespace game
             // Si está en pausa y toca CREDITS
             else if (option_at(touch_location) == CREDITS) seenCredits = true;
 
+            // Si está en pausa y toca EXIT
+            else if(option_at(touch_location) == EXIT)
+            {
+                save_scores();
+                state = ERROR;
+                director.run_scene (shared_ptr< Scene >(new menu::Menu_Scene));
+            }
+
         }
 
         if (playSpr->contains(touch_location))
@@ -360,7 +368,7 @@ namespace game
                     case NEXTROUND: render_afterRounds(*canvas); break;
                     case GAMEOVER:  render_afterRounds(*canvas); break;
                     case PAUSE:     render_pause     ( *canvas); break;
-                    case ERROR:                                      break;
+                    case ERROR:     render_afterRounds(*canvas); break;
                 }
             }
         }
@@ -712,6 +720,7 @@ namespace game
     {
         // Reinicia valores que no se reinician por si mismos durante la carga de una nueva ronda
         counter = 0;
+        current_score = 0;
         sprites.clear();
         spritesPause.clear();
         for (int i = 0; i < nCasillas; ++i) warnsSpr[i] = nullptr;
@@ -760,6 +769,7 @@ namespace game
             case LOADING:   id = ID(loading);     break;
             case NEXTROUND: id = ID(nextround);   break;
             case GAMEOVER:  id = ID(gameover);    break;
+            case ERROR:     id = ID(loading);     break;
         }
 
         Texture_2D * textureRound = textures[id].get ();

@@ -270,6 +270,7 @@ namespace menu
 
     int Menu_Scene::option_at (const Point2f & point)
     {
+        // Comprueba en que opción está el jugador en el menú de pausa
         for (int index = 0; index < number_of_options; ++index)
         {
             const Option & option = options[index];

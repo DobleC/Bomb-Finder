@@ -27,6 +27,7 @@
     #include <fstream>
 
     #include "Sprite.hpp"
+    #include "Menu_Scene.hpp"
     #include "controlador.hpp" // Incluye modelo
 
 
