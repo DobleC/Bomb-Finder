@@ -32,6 +32,7 @@ namespace game
         { ID(nextround),"sprites/nextround.png"      },
         { ID(gameover), "sprites/gameover.png"       },
         { ID(help),     "menu-scene/help.png"        },
+        { ID(credits),  "menu-scene/credits.png"     },
         { ID(down),     "sprites/0facedown.png"      },
         { ID(one),      "sprites/1point.png"         },
         { ID(two),      "sprites/2point.png"         },
@@ -158,12 +159,11 @@ namespace game
                             state = NEWROUND;
                             timer.reset();
                         }
-                        //else rondaAcabada = false;
                     }
 
                     if(pausaSpr->contains(touched_point))
                     {
-                        playSpr->show();
+                        playSpr ->show();
                         pausaSpr->hide();
                         state = PAUSE;
                     }
@@ -201,28 +201,30 @@ namespace game
 
                     Point2f touch_location = { *event[ID(x)].as< var::Float > (), *event[ID(y)].as< var::Float > () };
 
-                    if(!seenScores && !seenHelp)
+                    if(!seenScores && !seenHelp && !seenCredits)
                     {
-                        if (option_at(touch_location) == SCORES) // Si está en pausa y toca SCORES
+                        // Si está en pausa y toca algo que no sea EXIT
+                        if (option_at(touch_location) > -1 && option_at(touch_location) < 3)
                         {
-                            playSpr->hide();
-                            pausaSpr->hide();
+                            playSpr  ->hide();
+                            pausaSpr ->hide();
                             gobackSpr->show();
-                            seenScores = true;
                         }
 
-                        if (option_at(touch_location) == HELP) // Si está en pausa y toca HELP
-                        {
-                            playSpr->hide();
-                            pausaSpr->hide();
-                            gobackSpr->show();
-                            seenHelp = true;
-                        }
+                        // Si está en pausa y toca SCORES
+                        if      (option_at(touch_location) == SCORES)  seenScores  = true;
+
+                        // Si está en pausa y toca HELP
+                        else if (option_at(touch_location) == HELP)    seenHelp    = true;
+
+                        // Si está en pausa y toca CREDITS
+                        else if (option_at(touch_location) == CREDITS) seenCredits = true;
+
                     }
 
                     if (playSpr->contains(touch_location))
                     {
-                        if(!seenScores && !seenHelp) // Si no está en ningún submenu de la pausa vuelve al juego
+                        if(!seenScores && !seenHelp && !seenCredits) // Si no está en ningún submenu de la pausa vuelve al juego
                         {
                             playSpr->hide();
                             pausaSpr->show();
@@ -231,8 +233,9 @@ namespace game
                         }
                         else
                         {
-                            if      (seenScores)  seenScores = false; // Sale de SCORES
-                            else if (seenHelp)    seenHelp   = false; // Sale de HELP
+                            if      (seenScores)  seenScores  = false; // Sale de SCORES
+                            else if (seenHelp)    seenHelp    = false; // Sale de HELP
+                            else if (seenCredits) seenCredits = false; // Sale de CREDITS
                             playSpr->show();
                             pausaSpr->hide();
                             gobackSpr->hide();
@@ -748,7 +751,7 @@ namespace game
     void Game_Scene::render_pause (Canvas & canvas)
     {
         // Se dibuja el slice de cada una de las opciones del menú:
-        if(!seenScores && !seenHelp)
+        if(!seenScores && !seenHelp && !seenCredits)
         {
             for (auto &option : options)
             {
@@ -773,6 +776,20 @@ namespace game
         else if (seenHelp)
         {
             Id id = ID(help);
+            Texture_2D * textureHelp = textures[id].get ();
+
+            if (textureHelp)
+            {
+                canvas.fill_rectangle
+                        (
+                                {canvas_width * .5f, canvas_height * .5f},
+                                {textureHelp->get_width(), textureHelp->get_height()}, textureHelp
+                        );
+            }
+        }
+        else if (seenCredits)
+        {
+            Id id = ID(credits);
             Texture_2D * textureHelp = textures[id].get ();
 
             if (textureHelp)

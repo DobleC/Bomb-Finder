@@ -33,6 +33,7 @@
             int          anchor;                    ///< Indica qué punto de la textura se colocará en 'position' (x,y).
 
             Size2f       size;                      ///< Tamaño del sprite (normalmente en coordenadas virtuales).
+            Size2f       original_size;
             Point2f      position;                  ///< Posición del sprite (normalmente en coordenadas virtuales).
             float        scale;                     ///< Escala el tamaño del sprite. Por defecto es 1.
 
@@ -130,6 +131,10 @@
             void set_scale (float new_scale)
             {
                 scale = new_scale;
+
+                original_size = size;
+                size  = size * scale;
+                // Hola Ángel, necesitaba arreglar mi problema y esta cutrería fue lo que se me ocurrió :)
             }
 
             void set_speed (const Vector2f & new_speed)
@@ -209,7 +214,7 @@
             {
                 if (visible)
                 {
-                    canvas.fill_rectangle (position, size * scale, texture, anchor);
+                    canvas.fill_rectangle (position, size /* * scale */, texture, anchor);
                 }
             }
 

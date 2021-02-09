@@ -110,11 +110,11 @@ using namespace basics;
 
             State               state;                    ///< Estado de la escena.
             bool                suspended;                ///< True cuando la escena está en segundo plano y viceversa.
-            bool                rondaAcabada = false;     ///< Cuando se vuelve true, se acaba la ronda y se pasa a la siguiente.
-            bool                gameOver     = false;     ///< Cuando se vuelve true, se acaba la partida y se reinicia
-            bool                seenScores   = false;
-            bool                seenHelp     = false;
-
+            bool                rondaAcabada    = false;  ///< Cuando se vuelve true, se acaba la ronda y se pasa a la siguiente.
+            bool                gameOver        = false;  ///< Cuando se vuelve true, se acaba la partida y se reinicia
+            bool                seenScores      = false;
+            bool                seenHelp        = false;
+            bool                seenCredits     = false;
 
             unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.

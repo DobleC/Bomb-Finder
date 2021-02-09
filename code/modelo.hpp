@@ -25,7 +25,7 @@ namespace model {
         int valorMultp;                         // Multiplica la puntuación total por si mismo
         bool estaDesvelada = false;             // false = sin desvelar
 
-        int percentBomba = 25;                  // 0%-percentBomba% -> porcentaje de bomba = 1
+        int percentBomba = 15;                  // 0%-percentBomba% -> porcentaje de bomba = 1
 
         int percentMultp[3] = {75, 90, 100};    //  0% -[0]% -> porcentaje de multp = 1
                                                 // [0]%-[1]% -> porcentaje de multp = 2
