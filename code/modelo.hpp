@@ -9,7 +9,6 @@
  */
 
 #include <cstdlib>
-#include <ctime>
 
 namespace model {
 
@@ -24,8 +23,9 @@ namespace model {
                                                 // (podría ser un bool pero lo prefiero en int para conteo de bombas)
         int valorMultp;                         // Multiplica la puntuación total por si mismo
         bool estaDesvelada = false;             // false = sin desvelar
+        bool estaMarcada = false;               // true = tiene una marquita roja encima
 
-        int percentBomba = 15;                  // 0%-percentBomba% -> porcentaje de bomba = 1
+        int percentBomba = 20;                  // 0%-percentBomba% -> porcentaje de bomba = 1
 
         int percentMultp[3] = {75, 90, 100};    //  0% -[0]% -> porcentaje de multp = 1
                                                 // [0]%-[1]% -> porcentaje de multp = 2
@@ -54,6 +54,8 @@ namespace model {
 
         bool getDesvelada() { return estaDesvelada; }
 
+        bool getMarcada()   { return estaMarcada;   }
+
         //int *getPercents()
         //{
         //    int percents[4] = {percentMultp[0], percentMultp[1], percentMultp[2], percentBomba};
@@ -68,7 +70,9 @@ namespace model {
 
         void setValorMultp(int m){ valorMultp    = m; }
 
-        void setDesvelada(bool e){ estaDesvelada = e; }
+        void setDesvelada(bool d){ estaDesvelada = d; }
+
+        void setMarcada(bool m)  { estaMarcada   = m; }
 
         void setPercents(int p[])
         {

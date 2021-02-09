@@ -169,8 +169,14 @@
              */
             int option_at (const Point2f & point);
 
+            /**
+             * Carga las scores guardadas por la game_scene
+             */
             void load_scores();
 
+            /**
+             * Printea los records del jugador
+             */
             void print_scores();
 
         };

@@ -37,12 +37,13 @@ namespace game
         { ID(one),      "sprites/1point.png"         },
         { ID(two),      "sprites/2point.png"         },
         { ID(three),    "sprites/3point.png"         },
-        { ID(bomb),     "sprites/4bombshadow.png"    },
+        { ID(bomb),     "sprites/4bomb.png"          },
         { ID(info),     "sprites/5info.png"          },
         { ID(blank),    "sprites/6blank.png"         },
         { ID(pause),    "sprites/7pause.png"         },
         { ID(play),     "sprites/8play.png"          },
         { ID(back),     "sprites/9back.png"          },
+        { ID(red),      "sprites/10red.png"          },
     };
 
     // Para determinar el número de items en el array textures_data, se divide el tamaño en bytes
@@ -83,7 +84,8 @@ namespace game
 
         state     = LOADING;
         suspended = true;
-        //gameplay  = UNINITIALIZED;
+
+        posXTablero = canvas_width / 5;
 
         // Inicializa a falso el menú de pausa
         for (auto & option : options) option.is_pressed = false;
@@ -117,56 +119,35 @@ namespace game
         {
             switch (event.id)
             {
+                case ID(touch-started):
+                {
+                    initial_x = *event[ID(x)].as< var::Float > ();
+                    initial_y = *event[ID(y)].as< var::Float > ();
+                    initial_point = {initial_x, initial_y};
+
+                    timer.reset();
+                    break;
+                }
+
                 case ID(touch-ended):  // El usuario deja de tocar la pantalla
                 {
-                    rondaAcabada = false;
-                    gameOver = false;
-                    scene_x = *event[ID(x)].as< var::Float > ();
-                    scene_y = *event[ID(y)].as< var::Float > ();
-                    Point2f touched_point{scene_x, scene_y};  // Guarda el último punto tocado
+                    //rondaAcabada = false;
+                    //gameOver = false;
+                    final_x = *event[ID(x)].as< var::Float > ();
+                    final_y = *event[ID(y)].as< var::Float > ();
+                    final_point = {final_x, final_y};  // Guarda el último punto tocado
 
-                    for (int i = 0; i < 25; ++i) //Recorre las casillas y sus sprites asociados
-                    {
-                        // Si el punto está contenido en el sprite && la casilla no ha sido desvelada
-                        if(grafico_casillas[i]->contains(touched_point) && !casillas[i]->getDesvelada())
-                        {
-                            casillas[i]->setDesvelada(true);
-                            Id id = check_ID(casillas[i]);
-                            Sprite_Handle card(new Sprite(textures[id].get()));
-                            card->set_position({casillas[i]->getX(), casillas[i]->getY()});
-                            card->set_scale(0.40f);
-                            sprites.push_back(card);
+                    //Se desvela la carta de haber sido tocada una
 
-                            // Si la casilla es una bomba, activa gameOver para que termine la partida
-                            if(casillas[i]->getValorBomba() == 1)
-                            {
-                                gameOver = true;
-                                state = NEWROUND;
-                                timer.reset();
-                            }
-                            else
-                            {
-                                // Obtiene el valor del multiplicador de la casilla y aumenta contador si es <1
-                                controlador.multiplicarPunt(casillas[i]->getValorMultp());
-                                if (casillas[i]->getValorMultp() > 1) ++counter;
-                            }
-                            current_score = controlador.getTotalScore() + controlador.getScore();
-                        }
+                    unveil_card();
 
-                        if(counter >= tablero.mayoresUno && !gameOver)
-                        {
-                            rondaAcabada = true;
-                            state = NEWROUND;
-                            timer.reset();
-                        }
-                    }
-
-                    if(pausaSpr->contains(touched_point))
+                    if(pausaSpr->contains(final_point))
                     {
                         playSpr ->show();
                         pausaSpr->hide();
                         state = PAUSE;
                     }
+
                     break;
                 }
             }
@@ -201,53 +182,136 @@ namespace game
 
                     Point2f touch_location = { *event[ID(x)].as< var::Float > (), *event[ID(y)].as< var::Float > () };
 
-                    if(!seenScores && !seenHelp && !seenCredits)
-                    {
-                        // Si está en pausa y toca algo que no sea EXIT
-                        if (option_at(touch_location) > -1 && option_at(touch_location) < 3)
-                        {
-                            playSpr  ->hide();
-                            pausaSpr ->hide();
-                            gobackSpr->show();
-                        }
-
-                        // Si está en pausa y toca SCORES
-                        if      (option_at(touch_location) == SCORES)  seenScores  = true;
-
-                        // Si está en pausa y toca HELP
-                        else if (option_at(touch_location) == HELP)    seenHelp    = true;
-
-                        // Si está en pausa y toca CREDITS
-                        else if (option_at(touch_location) == CREDITS) seenCredits = true;
-
-                    }
-
-                    if (playSpr->contains(touch_location))
-                    {
-                        if(!seenScores && !seenHelp && !seenCredits) // Si no está en ningún submenu de la pausa vuelve al juego
-                        {
-                            playSpr->hide();
-                            pausaSpr->show();
-                            gobackSpr->hide();
-                            state = RUNNING;
-                        }
-                        else
-                        {
-                            if      (seenScores)  seenScores  = false; // Sale de SCORES
-                            else if (seenHelp)    seenHelp    = false; // Sale de HELP
-                            else if (seenCredits) seenCredits = false; // Sale de CREDITS
-                            playSpr->show();
-                            pausaSpr->hide();
-                            gobackSpr->hide();
-
-                        }
-                    }
+                    //Se gestiona la pulsación del user
+                    click_menu(touch_location);
 
                     break;
                 }
             }
         }
     }
+
+    void Game_Scene::unveil_card ()
+    {
+        for (int i = 0; i < nCasillas; ++i) //Recorre las casillas y sus sprites asociados
+        {
+            // Si el punto está contenido en el sprite && la casilla no ha sido desvelada
+            if(casillasSpr[i]->contains(final_point) && !casillas[i]->getDesvelada())
+            {
+                // Si el usuario no mantiene pulsado para marcar la casilla como peligrosa
+                if(!set_warn(i))
+                {
+                    //"Desvela" la casilla
+                    casillas[i]->setDesvelada(true);
+                    Id id = check_ID(casillas[i]);
+                    Sprite_Handle card(new Sprite(textures[id].get()));
+                    card->set_position({casillas[i]->getX(), casillas[i]->getY()});
+                    card->set_scale(scaleCards);
+                    casillasSpr[i] ->hide();      // Oculta el gráfico de carta bocaabajo
+                    casillasSpr[i] = card.get(); // Guarda el puntero a la nueva carta
+                    sprites.push_back(card);
+
+
+                    // Si la casilla es una bomba, activa gameOver para que termine la partida
+                    if(casillas[i]->getValorBomba() == 1)
+                    {
+                        gameOver = true;
+                        state = NEWROUND;
+                        timer.reset();
+                    }
+                    else
+                    {
+                        // Obtiene el valor del multiplicador de la casilla y aumenta contador si es <1
+                        controlador.multiplicarPunt(casillas[i]->getValorMultp());
+                        if (casillas[i]->getValorMultp() > 1) ++counter;
+                    }
+                    current_score = controlador.getTotalScore() + controlador.getScore();
+
+                    if(counter >= tablero.mayoresUno)// Si ha desvelado todos los 2 y 3, pasa a la siguiente ronda
+                    {
+                        rondaAcabada = true;
+                        state = NEWROUND;
+                        timer.reset();
+                    }
+                }
+            }
+        }
+    }
+
+    bool Game_Scene::set_warn(int i)
+    {
+        // Si la casilla lleva más de 0.6s pulsada
+        if(casillasSpr[i]->contains(initial_point) && timer.get_elapsed_seconds () > 0.2f)
+        {
+            // Si la casilla no ha sido marcada
+            if(casillas[i]->getMarcada() == false)
+            {
+                casillas[i]->setMarcada(true);
+                if (warnsSpr[i] == nullptr) // Si no hay un sprite creado, lo crea
+                {
+                    Sprite_Handle warn(new Sprite(textures[ID(red)].get()));
+                    warn->set_position({casillas[i]->getX() - 25, casillas[i]->getY() + 25});
+                    warn->set_scale(scaleCards * 0.3f);
+                    warnsSpr[i] = warn.get();
+                    sprites.push_back(warn);
+                }
+                else warnsSpr[i]->show(); // Reutiliza el sprite si ya lo había creado
+            }
+            else // Si ya está marcada, esconde el sprite al mantener pulsado, por si el usuario cambia de opinión
+            {
+                casillas[i]->setMarcada(false);
+                warnsSpr[i]->hide();
+            }
+            return true; // Ha puesto (o ocultado) un warn
+        }
+        return false;   // No ha puesto un warn
+    }
+
+    void Game_Scene::click_menu (Point2f touch_location)
+    {
+        if(!seenScores && !seenHelp && !seenCredits) // Si no está en ningún submenu de la pausa
+        {
+            // Si está en pausa y toca algo que no sea EXIT
+            if (option_at(touch_location) > -1 && option_at(touch_location) < 3)
+            {
+                playSpr  ->hide();
+                pausaSpr ->hide();
+                gobackSpr->show();
+            }
+
+            // Si está en pausa y toca SCORES
+            if      (option_at(touch_location) == SCORES)  seenScores  = true;
+
+            // Si está en pausa y toca HELP
+            else if (option_at(touch_location) == HELP)    seenHelp    = true;
+
+            // Si está en pausa y toca CREDITS
+            else if (option_at(touch_location) == CREDITS) seenCredits = true;
+
+        }
+
+        if (playSpr->contains(touch_location))
+        {
+            if(!seenScores && !seenHelp && !seenCredits) // Si no está en ningún submenu de la pausa vuelve al juego
+            {
+                playSpr  ->hide();
+                pausaSpr ->show();
+                gobackSpr->hide();
+                state = RUNNING;
+            }
+            else
+            {
+                if      (seenScores)  seenScores  = false; // Sale de SCORES
+                else if (seenHelp)    seenHelp    = false; // Sale de HELP
+                else if (seenCredits) seenCredits = false; // Sale de CREDITS
+                playSpr  ->show();
+                pausaSpr ->hide();
+                gobackSpr->hide();
+
+            }
+        }
+    }
+
 
     // ---------------------------------------------------------------------------------------------
 
@@ -346,7 +410,6 @@ namespace game
         }
     }
 
-    // ---------------------------------------------------------------------------------------------
 
     void Game_Scene::create_sprites ()
     {
@@ -390,16 +453,19 @@ namespace game
 
 
             casillas[i] = &tablero.matrizTablero[f][c]; // Guardar las direcciones de las casillas del tablero
-            casillas[i]->setX(x);
-            casillas[i]->setY(y);
+            casillas[i]->setX(x); // Setea la x de la casilla para cuando tenga que invocarse algo en su posición
+            casillas[i]->setY(y); // Setea la y de la casilla para cuando tenga que invocarse algo en su posición
 
+            // No es necesario pero comprueba el id de las casillas y si han sido desveladas antes de crearlas
+            // Es útil para hacer pruebas y desvelar el tablero durante estas
             if(!casillas[i]->getDesvelada()) id = ID(down);
             else id = check_ID(casillas[i]);
 
+            // Genera la carta boca abajo y guarda una referencia a esta
             Sprite_Handle card(new Sprite(textures[id].get()));
             card->set_position({x, y});
-            card->set_scale(0.40f);
-            grafico_casillas[i] = card.get();
+            card->set_scale(scaleCards);
+            casillasSpr[i] = card.get();
             sprites.push_back(card);
 
             if (c == 4 && f < 4) // Salta a la siguiente fila siempre que haya una
@@ -434,7 +500,7 @@ namespace game
 
                 Sprite_Handle card(new Sprite(textures[id].get()));
                 card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
-                card->set_scale(0.40f);
+                card->set_scale(scaleCards);
                 sprites.push_back(card);
             }
 
@@ -446,14 +512,15 @@ namespace game
 
             Sprite_Handle card(new Sprite(textures[id].get()));
             card->set_position({posXTablero + xLoc * escalar, posYTablero + yLoc * escalar});
-            card->set_scale(0.40f);
+            card->set_scale(scaleCards);
             sprites.push_back(card);
         }
 
+        //Crea los 3 botones que se usan para pausar, y moverse por el menú de pausa
         id = ID(back);
         Sprite_Handle atras(new Sprite(textures[id].get()));
         atras->set_position({1220, 60});
-        atras->set_scale(0.40f);
+        atras->set_scale(scaleCards);
         spritesPause.push_back(atras);
         gobackSpr = atras.get();
         gobackSpr->hide();
@@ -461,7 +528,7 @@ namespace game
         id = ID(play);
         Sprite_Handle jugar(new Sprite(textures[id].get()));
         jugar->set_position({1220, 60});
-        jugar->set_scale(0.40f);
+        jugar->set_scale(scaleCards);
         spritesPause.push_back(jugar);
         playSpr = jugar.get();
         playSpr->hide();
@@ -469,7 +536,7 @@ namespace game
         id = ID(pause);
         Sprite_Handle pausa(new Sprite(textures[id].get()));
         pausa->set_position({1220, 60});
-        pausa->set_scale(0.40f);
+        pausa->set_scale(scaleCards);
         spritesPause.push_back(pausa);
         pausaSpr = pausa.get();
     }
@@ -490,8 +557,10 @@ namespace game
         wstring puntosFil;      //
         wstring bombasFil;      //
 
+        // Escribe las puntuaciones a la derecha del tablero
         print_scores();
 
+        // Escribe la ronda actual en el cuadrado de la esquina inferior derecha
         wstring ronda = to_wstring(controlador.getRound());
         Text_Layout ronda_text(*blackfont, L"R-" +  ronda);
         if (controlador.getRound() > 9) canvas->draw_text({posXTablero + 5.6f * escalar, posYTablero + 0.3f * escalar}, ronda_text);
@@ -508,7 +577,7 @@ namespace game
 
         for (int i = 0; i < 5; ++i, ++colY, ++filX)
         {
-            //-------------------------------Números Columna--------------------------------------//
+            //----------------------------Números por Columna-------------------------------------//
 
             xLoc = colX + 1; // Ajustar las posiciones para multiplicar con ellas
             yLoc = colY + 1; //
@@ -533,7 +602,7 @@ namespace game
             y = 6 + posYTablero + yLoc * escalar;
             canvas->draw_text({x, y}, bombas_textCol);
 
-            //----------------------------------Números Fila--------------------------------------//
+            //-------------------------------Números por Fila-------------------------------------//
 
             xLoc = filX + 1; // Ajustar las posiciones para multiplicar con ellas
             yLoc = filY + 1; //
@@ -562,9 +631,12 @@ namespace game
 
     void Game_Scene::save_scores ()
     {
+        // Comprueba si la puntuación del jugador entra en high scores
         check_scores();
-        //for (int i = 0; i < nScore; ++i) highscores[i] = 0;  //<--- Borrar datos
 
+        //for (int i = 0; i < nScore; ++i) highscores[i] = 0;  //<--- Borrar datos para testear
+
+        // Genera un path donde el writter escribirá los datos
         string path = application.get_internal_data_path () + "/scores.data";
         ofstream writer(path, ofstream::binary | ofstream::trunc);
 
@@ -584,6 +656,7 @@ namespace game
         int i = 0;
         for (i = 0; i < nScore; ++i) highscores[i] = 0;  // Inicializa el array a 0
 
+        // Genera el path donde el reader leerá los datos
         string path = application.get_internal_data_path () + "/scores.data";
         ifstream reader(path, ofstream::binary);
 
@@ -607,13 +680,14 @@ namespace game
 
         for (int i = 0; i < nScore; ++i)
         {
+            // Si la score es mejor que la highscore i, guarda esta en su posición y
+            // baja todas las demás un puesto hacia abajo
             if(highscores[i] <= score && score > 0)
             {
                 aux = highscores[i];
                 highscores[i] = score;
                 score = aux;
             }
-            basics::log.d("High Score " + to_string(i) + " = " + to_string(highscores[i]));
         }
     }
 
@@ -636,35 +710,35 @@ namespace game
 
     void Game_Scene::clear_round()
     {
+        // Reinicia valores que no se reinician por si mismos durante la carga de una nueva ronda
         counter = 0;
         sprites.clear();
         spritesPause.clear();
+        for (int i = 0; i < nCasillas; ++i) warnsSpr[i] = nullptr;
         timer.reset();
         state = LOADING;
     }
 
 
-    // ---------------------------------------------------------------------------------------------
-    // Cuando el juego se inicia por primera vez o cuando se reinicia porque un jugador pierde, se
-    // llama a este método para restablecer la posición y velocidad de los sprites:
-
     void Game_Scene::restart_game()
     {
+        // Genera un nuevo tablero para cada ronda
         Tablero tab;
         tablero = tab;
 
+        // Genera un controlador en caso de no haber uno
         if(!controlador)
         {
             Controlador cont;
             controlador = cont;
         }
-
-        posXTablero = canvas_width / 5;
     }
 
 
     void Game_Scene::check_endCondition ()
     {
+        // Si alguna de las 2 condiciones para terminar una ronda se cumplen, cambia de estado e
+        // invoca a la función correspondiente
         if(rondaAcabada)
         {
             if (timer.get_elapsed_seconds () > 1.f) state = NEXTROUND;
@@ -681,7 +755,7 @@ namespace game
     {
         Id id;
 
-        switch (state)
+        switch (state) // Según el estado de la partida, pinta una textura u otra
         {
             case LOADING:   id = ID(loading);     break;
             case NEXTROUND: id = ID(nextround);   break;
@@ -698,12 +772,14 @@ namespace game
                     {textureRound->get_width (), textureRound->get_height () }, textureRound
             );
 
+            // Muestra las puntuaciones del jugador entre rondas siempre y cuando no sea la primera carga
             if(state == NEXTROUND || (controlador.getRound() > 1 && state == LOADING)) print_scores();
         }
     }
 
     void Game_Scene::print_scores()
     {
+        // Si el juego no está en pausa, printea las puntuación de ronda y total
         if(state != PAUSE)
         {
             wstring puntos = to_wstring(controlador.getScore());
@@ -750,7 +826,8 @@ namespace game
 
     void Game_Scene::render_pause (Canvas & canvas)
     {
-        // Se dibuja el slice de cada una de las opciones del menú:
+        // Se dibuja el slice de cada una de las opciones del menú de pausa mientras
+        // no se entre en ninguno de sus submenús
         if(!seenScores && !seenHelp && !seenCredits)
         {
             for (auto &option : options)
@@ -759,8 +836,8 @@ namespace game
                         (
                                 scale_then_translate_2d
                                         (
-                                                option.is_pressed ? 0.75f : 1.f,                     // Escala de la opción
-                                                {option.position[0], option.position[1]}     // Traslación
+                                                option.is_pressed ? 0.75f : 1.f,
+                                                {option.position[0], option.position[1]}
                                         )
                         );
 
@@ -772,8 +849,8 @@ namespace game
             // dibujos posteriores realizados con el mismo canvas:
             canvas.set_transform (Transformation2f());
         }
-        else if (seenScores) print_scores();
-        else if (seenHelp)
+        else if (seenScores) print_scores(); // Muestra las highscores durante la pausa
+        else if (seenHelp)                   // Muestra el tutorial durante la pausa
         {
             Id id = ID(help);
             Texture_2D * textureHelp = textures[id].get ();
@@ -787,7 +864,7 @@ namespace game
                         );
             }
         }
-        else if (seenCredits)
+        else if (seenCredits)                // Muestra los créditos durante la pausa
         {
             Id id = ID(credits);
             Texture_2D * textureHelp = textures[id].get ();
@@ -802,6 +879,7 @@ namespace game
             }
         }
 
+        // Renderiza solo los sprites que se usan durante la pausa
         for (auto & sprite : spritesPause) sprite->render (canvas);
     }
 
@@ -850,13 +928,12 @@ namespace game
 
             option_top -= options[index].slice->height;
         }
-
         // Se restablece la presión de cada opción en initialize
-
     }
 
     int Game_Scene::option_at (const Point2f & point)
     {
+        // Comprueba en que opción está el jugador en el menú de pausa
         for (int index = 0; index < nOptions; ++index)
         {
             const Option & option = options[index];
@@ -875,43 +952,4 @@ namespace game
 
         return -1;
     }
-
 }
-
-
-// ---------------------------------------------------------------------------------------------
-// Se hace que el player dechero se mueva hacia arriba o hacia abajo según el usuario esté
-// tocando la pantalla por encima o por debajo de su centro. Cuando el usuario no toca la
-// pantalla se deja al player quieto.
-
-//void Game_Scene::update_user () // Ejemplo intersects
-// {
-//  if (right_player->intersects (*top_border))
-//  {
-//      // Si el player está tocando el borde superior, no puede ascender:
-//
-//      right_player->set_position_y (top_border->get_bottom_y () - right_player->get_height () / 2.f);
-//      right_player->set_speed_y (0);
-//  }
-//  else
-//  if (right_player->intersects (*bottom_border))
-//  {
-//      // Si el player está tocando el borde inferior, no puede descender:
-//
-//      right_player->set_position_y (bottom_border->get_top_y () + right_player->get_height () / 2.f);
-//      right_player->set_speed_y (0);
-//  }
-//  else
-//  if (follow_target)
-//  {
-//      // Si el usuario está tocando la pantalla, se determina si está tocando por encima o por
-//      // debajo de su centro para establecer si tiene que subir o bajar:
-//
-//      float delta_y = user_target_y - right_player->get_position_y ();
-//
-//      if (delta_y < 0.f) right_player->set_speed_y (-player_speed); else
-//      if (delta_y > 0.f) right_player->set_speed_y (+player_speed);
-//  }
-//  else
-//      right_player->set_speed_y (0);
-// }

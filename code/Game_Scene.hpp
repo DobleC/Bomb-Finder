@@ -104,9 +104,11 @@ using namespace basics;
              */
             static struct   Texture_Data { Id id; const char * path; } textures_data[];
 
-            static unsigned       textures_count;         ///< Número de items que hay en el array textures_data.
-            static const unsigned nOptions = 4;           ///< Número de opciones en el menú de pausa
-            static const unsigned nScore = 9;             ///< Número de highscores que se guardan
+            static unsigned        textures_count;         ///< Número de items que hay en el array textures_data.
+            static const unsigned  nOptions = 4;           ///< Número de opciones en el menú de pausa
+            static const unsigned  nScore = 9;             ///< Número de highscores que se guardan
+            static const unsigned  nCasillas = 25;         ///< Número de casillas del tablero
+            static constexpr float scaleCards = 0.40f;     ///< Número de casillas del tablero
 
             State               state;                    ///< Estado de la escena.
             bool                suspended;                ///< True cuando la escena está en segundo plano y viceversa.
@@ -119,8 +121,12 @@ using namespace basics;
             unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
 
-            float               scene_x;                  ///< Denota la coordenada X de donde pulsa el jugador
-            float               scene_y;                  ///< Denota la coordenada X de donde pulsa el jugador
+            float               initial_x;                ///< Denota la coordenada X de donde pulsa el jugador
+            float               initial_y;                ///< Denota la coordenada Y de donde pulsa el jugador
+            Point2f             initial_point;
+            float               final_x;                  ///< Denota la coordenada X de donde deja de pulsar el jugador
+            float               final_y;                  ///< Denota la coordenada Y de donde deja de pulsar el jugador
+            Point2f             final_point;
 
             Texture_Map         textures;                 ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
             Sprite_List         sprites;                  ///< Lista en la que se guardan shared_ptr a los sprites creados.
@@ -132,14 +138,15 @@ using namespace basics;
             const unsigned      posYTablero =  85;        ///< Altura para colocar en vertical el tablero
             const unsigned      escalar     = 110;        ///< Distancia entre casillas
 
-            Casilla             *casillas[25];            ///< Guarda los punteros a las 25 casillas
-            Sprite              *grafico_casillas[25];    ///< Guarda punteros a los sprites de las casillas
+            Casilla             *casillas[nCasillas];     ///< Guarda los punteros a las 25 casillas
+            Sprite              *casillasSpr[nCasillas];  ///< Guarda punteros a los sprites de las casillas
+            Sprite              *warnsSpr[nCasillas];     ///< Guarda punteros a los sprites de los cuadrados rojos
             Sprite              *pausaSpr;
             Sprite              *playSpr;
             Sprite              *gobackSpr;
             Canvas              *canvas;                  ///< Guarda puntero al canvas
             Tablero             tablero;                  ///< Guarda la información del tablero
-            Controlador         controlador;
+            Controlador         controlador;              ///< Guarda el controlador del juego
             unsigned            counter = 0;              ///< Cuenta los multiplicadores desvelados que son >1
 
             unsigned            current_score = 0;        ///< Record del player actual
@@ -209,14 +216,32 @@ using namespace basics;
             void create_tablero ();
 
             /**
-             * En este método crea la información del tablero cuando termina su construcción.
+             * En este método crea las casillas de información del tablero cuando termina su construcción.
              */
             void create_info ();
 
             /**
-             * En este método crea y actualiza los textos del juego.
+             * En este método crea y actualiza los textos del juego (números y las scores).
              */
             void create_text ();
+
+            /**
+             * Desvela una carta al ser tocada
+             */
+            void unveil_card();
+
+            /**
+             * Comprueba que el usuario no esté mantenido pulsada la misma casilla, en cuyo caso
+             * crea un sprite rojo encima de ella para marcarla como casilla no segura
+             * @param Índice para comprobar en que casilla se encuentra
+             * @return true si se han cumplido los requerimientos para marcar la casilla.
+             */
+            bool set_warn(int i);
+
+            /**
+             * En este gestiona las pulsaciones en el menú de pausa
+             */
+            void click_menu(Point2f touched_point);
 
             /**
              * Este método avanza a la siguiente ronda
@@ -244,7 +269,7 @@ using namespace basics;
             void load_scores ();
 
             /**
-             * Este método gestiona el array de mejores puntuaciones
+             * Este método gestiona el array de mejores puntuaciones para introducir nuevas high scores
              */
             void check_scores ();
 

@@ -293,6 +293,7 @@ namespace menu
         int i = 0;
         for (i = 0; i < nScore; ++i) highscores[i] = 0;  // Inicializa el array a 0
 
+        // Genera el path donde el reader escribirá los datos
         string path = application.get_internal_data_path () + "/scores.data";
         ifstream reader(path, ofstream::binary);
 
@@ -317,6 +318,7 @@ namespace menu
         int x = 390;
         int y = 740;
 
+        // Printea las high scores
         for (int i = 0; i < nScore; ++i)
         {
             y -= 70;
