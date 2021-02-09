@@ -88,15 +88,21 @@ namespace menu
                     }
                     else if (option_at (touch_location) == HELP)
                     {
-                        helpSpr->show();
+                        helpSpr  ->show();
                         gobackSpr->show();
                         state = SEENHELP;
+                    }
+                    else if (option_at (touch_location) == CREDITS)
+                    {
+                        creditsSpr->show();
+                        gobackSpr ->show();
+                        state = SEENCREDITS;
                     }
                     break;
                 }
             }
         }
-        else if (state == SEENSCORE || state == SEENHELP)
+        else if (state == SEENSCORE || state == SEENHELP || state == SEENCREDITS)
         {
             switch (event.id)
             {
@@ -107,9 +113,10 @@ namespace menu
 
                     if (gobackSpr->contains(touch_location))
                     {
+                        gobackSpr ->hide();
+                        helpSpr   ->hide();
+                        creditsSpr->hide();
                         state = READY;
-                        gobackSpr->hide();
-                        helpSpr->hide();
                     }
                 }
             }
@@ -128,24 +135,32 @@ namespace menu
                 if (context) {
 
                     whitefont.reset(new Raster_Font("fonts/impactwhite.fnt", context));
-                    gobackTexture = Texture_2D::create (ID(back), context, "sprites/9back.png");
-                    helpTexture   = Texture_2D::create (ID(help), context, "menu-scene/help.png" );
+                    gobackTexture    = Texture_2D::create (ID(back),    context, "sprites/9back.png"      );
+                    helpTexture      = Texture_2D::create (ID(help),    context, "menu-scene/help.png"    );
+                    creditsTexture   = Texture_2D::create (ID(credits), context, "menu-scene/credits.png" );
 
-                    context->add(gobackTexture);
-                    context->add(helpTexture  );
+                    context->add(gobackTexture );
+                    context->add(helpTexture   );
+                    context->add(creditsTexture);
 
                     Sprite_Handle ayuda(new Sprite(helpTexture.get()));
                     ayuda->set_position({canvas_width * 0.5f, canvas_height * 0.5f});
                     helpSpr = ayuda.get();
-                    sprites.push_back(ayuda);
                     helpSpr->hide();
+                    sprites.push_back(ayuda);
+
+                    Sprite_Handle creditos(new Sprite(creditsTexture.get()));
+                    creditos->set_position({canvas_width * 0.5f, canvas_height * 0.5f});
+                    creditsSpr = creditos.get();
+                    creditsSpr->hide();
+                    sprites.push_back(creditos);
 
                     Sprite_Handle atras(new Sprite(gobackTexture.get()));
                     atras->set_position({1220, 60});
                     atras->set_scale(0.40f);
                     gobackSpr = atras.get();
-                    sprites.push_back(atras);
                     gobackSpr->hide();
+                    sprites.push_back(atras);
 
                     // Se carga el atlas:
                     atlas.reset(new Atlas("menu-scene/main-menu.sprites", context));
@@ -183,6 +198,7 @@ namespace menu
             if (canvas)
             {
                 canvas->clear ();
+
                 for (auto & sprite : sprites)      sprite->render (*canvas);
 
                 if (state == READY)
@@ -264,10 +280,7 @@ namespace menu
                 point[0] < option.position[0] + option.slice->width  &&
                 point[1] > option.position[1] - option.slice->height &&
                 point[1] < option.position[1] + option.slice->height
-            )
-            {
-                return index;
-            }
+            ) return index;
         }
 
         return -1;
@@ -315,5 +328,4 @@ namespace menu
         }
 
     }
-
 }

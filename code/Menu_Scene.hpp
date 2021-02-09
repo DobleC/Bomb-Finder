@@ -53,6 +53,7 @@
                 READY,
                 SEENSCORE,
                 SEENHELP,
+                SEENCREDITS,
                 ERROR
             };
 
@@ -94,8 +95,10 @@
 
             Texture_Handle        gobackTexture;
             Texture_Handle        helpTexture;
-            graphics::Sprite     *gobackSpr;
-            graphics::Sprite     *helpSpr;
+            Texture_Handle        creditsTexture;
+            graphics::Sprite      *gobackSpr;
+            graphics::Sprite      *helpSpr;
+            graphics::Sprite      *creditsSpr;
             Sprite_List           sprites;                 ///< Lista en la que se guardan shared_ptr a los sprites creados.
 
         public:
