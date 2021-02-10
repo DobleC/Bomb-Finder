@@ -1,11 +1,13 @@
 /*
  * GAME SCENE
  * Copyright © 2018+ Ángel Rodríguez Ballesteros
+ * Modified by Carlos Casado (Copyright © 2020+)
  *
  * Distributed under the Boost Software License, version  1.0
  * See documents/LICENSE.TXT or www.boost.org/LICENSE_1_0.txt
  *
  * angel.rodriguez@esne.edu
+ * rexitah@gmail.com
  */
 
 #ifndef GAME_SCENE_HEADER
@@ -32,23 +34,14 @@
     #include "controlador.hpp" // Incluye modelo
 
 
-
 using namespace graphics;
 using namespace model;
 using namespace controller;
 using namespace std;
 using namespace basics;
 
-
     namespace game
     {
-
-        //using basics::Id;
-        //using basics::Timer;
-        //using basics::Canvas;
-        //using basics::Texture_2D;
-        //using basics::Atlas;
-
         class Game_Scene : public basics::Scene
         {
 
@@ -118,9 +111,9 @@ using namespace basics;
             bool                suspended;                 ///< True cuando la escena está en segundo plano y viceversa.
             bool                rondaAcabada    = false;   ///< Cuando se vuelve true, se acaba la ronda y se pasa a la siguiente.
             bool                gameOver        = false;   ///< Cuando se vuelve true, se acaba la partida y se reinicia
-            bool                seenScores      = false;
-            bool                seenHelp        = false;
-            bool                seenCredits     = false;
+            bool                seenScores      = false;   ///< Cuando se vuelve true, el usuario está en Pause/Scores
+            bool                seenHelp        = false;   ///< Cuando se vuelve true, el usuario está en Pause/Help
+            bool                seenCredits     = false;   ///< Cuando se vuelve true, el usuario está en Pause/Credits
 
             unsigned            canvas_width;              ///< Ancho de la resolución virtual usada para dibujar.
             unsigned            canvas_height;             ///< Alto  de la resolución virtual usada para dibujar.
@@ -145,9 +138,9 @@ using namespace basics;
             Casilla             *casillas[nCasillas];      ///< Guarda los punteros a las 25 casillas
             Sprite              *casillasSpr[nCasillas];   ///< Guarda punteros a los sprites de las casillas
             Sprite              *warnsSpr[nCasillas];      ///< Guarda punteros a los sprites de los cuadrados rojos
-            Sprite              *pausaSpr;
-            Sprite              *playSpr;
-            Sprite              *gobackSpr;
+            Sprite              *pausaSpr;                 ///< Guarda puntero al sprite de pausa
+            Sprite              *playSpr;                  ///< Guarda puntero al sprite de play
+            Sprite              *gobackSpr;                ///< Guarda puntero al sprite de atrás
             Canvas              *canvas;                   ///< Guarda puntero al canvas
             Tablero             tablero;                   ///< Guarda la información del tablero
             Controlador         controlador;               ///< Guarda el controlador del juego
@@ -221,17 +214,17 @@ using namespace basics;
         private:
 
             /**
-            * En este método crea el tablero cuando termina la carga de texturas.
+            * En este método se crea el tablero cuando termina la carga de texturas.
             */
             void create_tablero ();
 
             /**
-             * En este método crea las casillas de información del tablero cuando termina su construcción.
+             * Este método crea las casillas de información del tablero cuando termina su construcción.
              */
             void create_info ();
 
             /**
-             * En este método crea y actualiza los textos del juego (números y las scores).
+             * Este método crea y actualiza los textos del juego (números y las scores).
              */
             void create_text ();
 
@@ -314,6 +307,11 @@ using namespace basics;
              * Printea la score por pantalla
              */
             void print_scores ();
+
+            /**
+             * Printea la round por pantalla
+             */
+            void print_round ();
 
             /**
              * Dibuja la textura con el mensaje de carga mientras el estado de la escena es LOADING.

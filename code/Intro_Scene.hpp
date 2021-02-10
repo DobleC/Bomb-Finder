@@ -1,11 +1,13 @@
 /*
  * INTRO SCENE
  * Copyright © 2018+ Ángel Rodríguez Ballesteros
+ * Modified by Carlos Casado (Copyright © 2020+)
  *
  * Distributed under the Boost Software License, version  1.0
  * See documents/LICENSE.TXT or www.boost.org/LICENSE_1_0.txt
  *
  * angel.rodriguez@esne.edu
+ * rexitah@gmail.com
  */
 
 #ifndef INTRO_SCENE_HEADER

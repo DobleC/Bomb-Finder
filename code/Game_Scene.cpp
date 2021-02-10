@@ -1,11 +1,13 @@
 /*
  * GAME SCENE
  * Copyright © 2018+ Ángel Rodríguez Ballesteros
+ * Modified by Carlos Casado (Copyright © 2020+)
  *
  * Distributed under the Boost Software License, version  1.0
  * See documents/LICENSE.TXT or www.boost.org/LICENSE_1_0.txt
  *
  * angel.rodriguez@esne.edu
+ * rexitah@gmail.com
  */
 
 #include "Game_Scene.hpp"
@@ -125,9 +127,9 @@ namespace game
 
     // ---------------------------------------------------------------------------------------------
 
-    void Game_Scene::handle (Event & event) // Ejemplos de touch
+    void Game_Scene::handle (Event & event)
     {
-        if (state == RUNNING)               // Se descartan los eventos cuando la escena está LOADING
+        if (state == RUNNING)  // Se descartan los eventos cuando la escena no está en RUNNING
         {
             switch (event.id)
             {
@@ -252,7 +254,7 @@ namespace game
 
     bool Game_Scene::set_warn(int i)
     {
-        // Si la casilla lleva más de 0.6s pulsada
+        // Si la casilla lleva más de 0.2s pulsada
         if(casillasSpr[i]->contains(initial_point) && timer.get_elapsed_seconds () > 0.2f)
         {
             // Si la casilla no ha sido marcada
@@ -264,7 +266,7 @@ namespace game
                     Sprite_Handle warn(new Sprite(textures[ID(red)].get()));
                     warn->set_position({casillas[i]->getX() - 25, casillas[i]->getY() + 25});
                     warn->set_scale(scaleCards * 0.3f);
-                    warnsSpr[i] = warn.get();
+                    warnsSpr[i] = warn.get();  // Guarda referencia al warn en el mismo índice en el que está la casilla
                     sprites.push_back(warn);
                 }
                 else warnsSpr[i]->show(); // Reutiliza el sprite si ya lo había creado
@@ -512,6 +514,7 @@ namespace game
         int xFil = 0;
         int yFil = -1;
 
+        // Se crean las 10 casillas de información que envuelven el tablero y la de ronda
         for (int i = 0; i < 6; ++i, ++yCol, ++xFil)
         {
             //---------------------------------Columna Info---------------------------------------//
@@ -563,6 +566,14 @@ namespace game
         pausaSpr = pausa.get();
     }
 
+    void Game_Scene::print_round()
+    {
+        wstring ronda = to_wstring(controlador.getRound());
+        Text_Layout ronda_text(*blackfont, L"R-" +  ronda);
+        if (controlador.getRound() > 9) canvas->draw_text({posXTablero + 5.6f * escalar, posYTablero + 0.3f * escalar}, ronda_text);
+        else canvas->draw_text({posXTablero + 5.7f * escalar, posYTablero + 0.3f * escalar}, ronda_text);
+    }
+
     void Game_Scene::create_text ()
     {
         int xLoc = 0;
@@ -583,11 +594,7 @@ namespace game
         print_scores();
 
         // Escribe la ronda actual en el cuadrado de la esquina inferior derecha
-        wstring ronda = to_wstring(controlador.getRound());
-        Text_Layout ronda_text(*blackfont, L"R-" +  ronda);
-        if (controlador.getRound() > 9) canvas->draw_text({posXTablero + 5.6f * escalar, posYTablero + 0.3f * escalar}, ronda_text);
-        else canvas->draw_text({posXTablero + 5.7f * escalar, posYTablero + 0.3f * escalar}, ronda_text);
-        //{posXTablero + xLoc * escalar, posYTablero + yLoc * escalar}
+        print_round();
 
         //Columna
         int colX = 5;           // Posiciones números columna
@@ -666,6 +673,7 @@ namespace game
         {
             for (int i = 0; i < nScore; ++i)
             {
+                // Se escriben las puntuaciones una a una en formato binario
                 unsigned score  = highscores[i];
                 writer.write (reinterpret_cast< char * >(&score), sizeof(score));
             }
@@ -686,6 +694,7 @@ namespace game
         {
             for (i = 0; i < nScore; ++i)
             {
+                // Se leen y cargan las puntuaciones una a una en formato binario
                 unsigned score;
                 reader.read (reinterpret_cast< char * >(&score), sizeof(score));
 
@@ -836,13 +845,6 @@ namespace game
     // Se dibujan todos los sprites que conforman la escena y los textos de esta.
     void Game_Scene::render_playfield (Canvas & canvas)
     {
-        //canvas.draw_segment ({    0,   1 }, { 1280,   1 });     // Borde inferior
-        //canvas.draw_segment ({    0, 720 }, { 1280, 720 });     // Borde superior
-        //canvas.draw_segment ({    1,   0 }, {    1, 720 });     // Borde izquierdo
-        //canvas.draw_segment ({ 1280,   0 }, { 1280, 720 });     // Borde derecho
-        //canvas.draw_segment ({    0,   360 }, { 1280/4,   360 });           // Medio derecha
-        //canvas.draw_segment ({    1280 * 0.75,   360 }, { 1280,   360 });   // Medio izquierda
-
         for (auto & sprite : sprites)      sprite->render (canvas);
         for (auto & sprite : spritesPause) sprite->render (canvas);
 
@@ -969,12 +971,15 @@ namespace game
                 point[0] < option.position[0] + option.slice->width  &&
                 point[1] > option.position[1] - option.slice->height &&
                 point[1] < option.position[1] + option.slice->height
-            )
-            {
-                return index;
-            }
+            ) return index;
         }
-
         return -1;
     }
 }
+
+//canvas.draw_segment ({    0,   1 }, { 1280,   1 });                   // Borde inferior
+//canvas.draw_segment ({    0, 720 }, { 1280, 720 });                   // Borde superior
+//canvas.draw_segment ({    1,   0 }, {    1, 720 });                   // Borde izquierdo
+//canvas.draw_segment ({ 1280,   0 }, { 1280, 720 });                   // Borde derecho
+//canvas.draw_segment ({    0,   360 }, { 1280/4,   360 });             // Medio derecha
+//canvas.draw_segment ({    1280 * 0.75,   360 }, { 1280,   360 });     // Medio izquierda

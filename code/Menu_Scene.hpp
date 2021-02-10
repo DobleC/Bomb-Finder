@@ -1,11 +1,13 @@
 /*
  * MENU SCENE
  * Copyright © 2018+ Ángel Rodríguez Ballesteros
+ * Modified by Carlos Casado (Copyright © 2020+)
  *
  * Distributed under the Boost Software License, version  1.0
  * See documents/LICENSE.TXT or www.boost.org/LICENSE_1_0.txt
  *
  * angel.rodriguez@esne.edu
+ * rexitah@gmail.com
  */
 
 #ifndef MENU_SCENE_HEADER
@@ -74,16 +76,16 @@
 
             static struct   Texture_Data { Id id; const char * path; } textures_data[];
 
-            static const unsigned number_of_options = 4;
+            static const unsigned number_of_options = 4;        ///< Número de opciones
             static const unsigned nScore = 9;                   ///< Número de highscores que se guardan
 
         private:
 
             State    state;                                     ///< Estado de la escena.
             bool     suspended;                                 ///< true cuando la escena está en segundo plano y viceversa.
-            bool     scoresLoaded = false;
+            bool     scoresLoaded = false;                      ///< Verifica si se han cargado las puntuaciones guardadas
 
-            Canvas * canvas;
+            Canvas * canvas;                                    ///< Puntero al canvas
             unsigned canvas_width;                              ///< Ancho de la resolución virtual usada para dibujar.
             unsigned canvas_height;                             ///< Alto  de la resolución virtual usada para dibujar.
 
@@ -93,13 +95,13 @@
             std::unique_ptr< basics::Raster_Font > whitefont;   ///< Fuente para escribir por pantalla en blanco
             unsigned highscores[nScore];                        ///< Colección de records del player
 
-            Texture_Handle        gobackTexture;
-            Texture_Handle        helpTexture;
-            Texture_Handle        creditsTexture;
-            graphics::Sprite      *gobackSpr;
-            graphics::Sprite      *helpSpr;
-            graphics::Sprite      *creditsSpr;
-            Sprite_List           sprites;                 ///< Lista en la que se guardan shared_ptr a los sprites creados.
+            Texture_Handle        gobackTexture;                ///< Texturas y sprites usados en el menú
+            Texture_Handle        helpTexture;                  ///<
+            Texture_Handle        creditsTexture;               ///<
+            graphics::Sprite      *gobackSpr;                   ///<
+            graphics::Sprite      *helpSpr;                     ///<
+            graphics::Sprite      *creditsSpr;                  ///<
+            Sprite_List           sprites;                      ///< Lista en la que se guardan shared_ptr a los sprites creados.
 
         public:
 

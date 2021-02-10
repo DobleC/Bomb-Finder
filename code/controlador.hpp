@@ -13,7 +13,6 @@
 
 using namespace model;
 
-
 namespace controller
 {
     class Controlador

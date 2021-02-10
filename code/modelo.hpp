@@ -42,7 +42,7 @@ namespace model {
           * @param percent[] Array de 4 ints con números del 0 al 100.
           * Los 3 primeros alteran percentMultp y el 4o altera percentBomba.
           */
-        Casilla(int percent[]);  // Recibe un array con porcentajes para alterar los actuales (por si se requiere cambiarlos)
+        Casilla(int percent[]);
 
         int getX()          { return posX;          }
 
@@ -89,13 +89,16 @@ namespace model {
         int width  = 0;
 
     public:
-        Casilla matrizTablero[5][5];
-        int mayoresUno = 0;
-        int bombasFila[5]    = {0, 0, 0, 0, 0};
-        int bombasColumna[5] = {0, 0, 0, 0, 0};
-        int puntosFila[5]    = {0, 0, 0, 0, 0};
-        int puntosColumna[5] = {0, 0, 0, 0, 0};
+        Casilla matrizTablero[5][5];                // Tablero de 25 Casillas
+        int mayoresUno = 0;                         // Número de casillas con valorMultp > 1
+        int bombasFila[5]    = {0, 0, 0, 0, 0};     // Bombas por cada fila
+        int bombasColumna[5] = {0, 0, 0, 0, 0};     // Bombas por cada columna
+        int puntosFila[5]    = {0, 0, 0, 0, 0};     // Puntos por cada fila
+        int puntosColumna[5] = {0, 0, 0, 0, 0};     // Puntos por cada columna
 
+        /**
+          * Constructor inicializa los valores del tablero
+          */
         Tablero()
         {
             calcDatos();
