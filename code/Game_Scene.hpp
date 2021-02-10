@@ -23,6 +23,7 @@
     #include <basics/Timer>
     #include <basics/Raster_Font>
     #include <basics/Atlas>
+    #include <basics/Audio_Player>
     #include <iostream>
     #include <fstream>
 
@@ -59,7 +60,8 @@ using namespace basics;
             typedef shared_ptr< Texture_2D          >  Texture_Handle;
             typedef map< Id, Texture_Handle         >  Texture_Map;
             typedef unique_ptr< Atlas               >  Atlas_Handle;
-            typedef Graphics_Context::Accessor Context;
+            typedef Audio_Player::Playback_Controller_Ptr   Walkman;
+            typedef Graphics_Context::Accessor              Context;
 
             /**
              * Representa el estado de la escena en su conjunto.
@@ -112,51 +114,52 @@ using namespace basics;
             static const unsigned  nCasillas = 25;         ///< Número de casillas del tablero
             static constexpr float scaleCards = 0.40f;     ///< Número de casillas del tablero
 
-            State               state;                    ///< Estado de la escena.
-            bool                suspended;                ///< True cuando la escena está en segundo plano y viceversa.
-            bool                rondaAcabada    = false;  ///< Cuando se vuelve true, se acaba la ronda y se pasa a la siguiente.
-            bool                gameOver        = false;  ///< Cuando se vuelve true, se acaba la partida y se reinicia
+            State               state;                     ///< Estado de la escena.
+            bool                suspended;                 ///< True cuando la escena está en segundo plano y viceversa.
+            bool                rondaAcabada    = false;   ///< Cuando se vuelve true, se acaba la ronda y se pasa a la siguiente.
+            bool                gameOver        = false;   ///< Cuando se vuelve true, se acaba la partida y se reinicia
             bool                seenScores      = false;
             bool                seenHelp        = false;
             bool                seenCredits     = false;
 
-            unsigned            canvas_width;             ///< Ancho de la resolución virtual usada para dibujar.
-            unsigned            canvas_height;            ///< Alto  de la resolución virtual usada para dibujar.
+            unsigned            canvas_width;              ///< Ancho de la resolución virtual usada para dibujar.
+            unsigned            canvas_height;             ///< Alto  de la resolución virtual usada para dibujar.
 
-            float               initial_x;                ///< Denota la coordenada X de donde pulsa el jugador
-            float               initial_y;                ///< Denota la coordenada Y de donde pulsa el jugador
+            float               initial_x;                 ///< Denota la coordenada X de donde pulsa el jugador
+            float               initial_y;                 ///< Denota la coordenada Y de donde pulsa el jugador
             Point2f             initial_point;
-            float               final_x;                  ///< Denota la coordenada X de donde deja de pulsar el jugador
-            float               final_y;                  ///< Denota la coordenada Y de donde deja de pulsar el jugador
+            float               final_x;                   ///< Denota la coordenada X de donde deja de pulsar el jugador
+            float               final_y;                   ///< Denota la coordenada Y de donde deja de pulsar el jugador
             Point2f             final_point;
 
-            Texture_Map         textures;                 ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
-            Sprite_List         sprites;                  ///< Lista en la que se guardan shared_ptr a los sprites creados.
-            Sprite_List         spritesPause;             ///< Lista en la que se guardan shared_ptr a los sprites creados.
-            Font_Handle         blackfont;                ///< Fuente para escribir por pantalla
-            Font_Handle         whitefont;                ///< Fuente para escribir por pantalla en blanco
+            Texture_Map         textures;                  ///< Mapa  en el que se guardan shared_ptr a las texturas cargadas.
+            Sprite_List         sprites;                   ///< Lista en la que se guardan shared_ptr a los sprites creados.
+            Sprite_List         spritesPause;              ///< Lista en la que se guardan shared_ptr a los sprites creados.
+            Font_Handle         blackfont;                 ///< Fuente para escribir por pantalla
+            Font_Handle         whitefont;                 ///< Fuente para escribir por pantalla en blanco
 
-            unsigned            posXTablero = 256;        ///< Anchura para colocar en horizontal el tablero.
-            const unsigned      posYTablero =  85;        ///< Altura para colocar en vertical el tablero
-            const unsigned      escalar     = 110;        ///< Distancia entre casillas
+            unsigned            posXTablero = 256;         ///< Anchura para colocar en horizontal el tablero.
+            const unsigned      posYTablero =  85;         ///< Altura para colocar en vertical el tablero
+            const unsigned      escalar     = 110;         ///< Distancia entre casillas
 
-            Casilla             *casillas[nCasillas];     ///< Guarda los punteros a las 25 casillas
-            Sprite              *casillasSpr[nCasillas];  ///< Guarda punteros a los sprites de las casillas
-            Sprite              *warnsSpr[nCasillas];     ///< Guarda punteros a los sprites de los cuadrados rojos
+            Casilla             *casillas[nCasillas];      ///< Guarda los punteros a las 25 casillas
+            Sprite              *casillasSpr[nCasillas];   ///< Guarda punteros a los sprites de las casillas
+            Sprite              *warnsSpr[nCasillas];      ///< Guarda punteros a los sprites de los cuadrados rojos
             Sprite              *pausaSpr;
             Sprite              *playSpr;
             Sprite              *gobackSpr;
-            Canvas              *canvas;                  ///< Guarda puntero al canvas
-            Tablero             tablero;                  ///< Guarda la información del tablero
-            Controlador         controlador;              ///< Guarda el controlador del juego
-            unsigned            counter = 0;              ///< Cuenta los multiplicadores desvelados que son >1
+            Canvas              *canvas;                   ///< Guarda puntero al canvas
+            Tablero             tablero;                   ///< Guarda la información del tablero
+            Controlador         controlador;               ///< Guarda el controlador del juego
+            unsigned            counter = 0;               ///< Cuenta los multiplicadores desvelados que son >1
 
-            unsigned            current_score = 0;        ///< Record del player actual
-            unsigned            highscores[nScore];       ///< Colección de records del player
-            Timer               timer;                    ///< Cronómetro usado para medir intervalos de tiempo
+            unsigned            current_score = 0;         ///< Record del player actual
+            unsigned            highscores[nScore];        ///< Colección de records del player
+            Timer               timer;                     ///< Cronómetro usado para medir intervalos de tiempo
+            Walkman             walkman;                   ///< Reproductor de audio
 
-            Option              options[nOptions];        ///< Datos de las opciones del menú de pausa
-            Atlas_Handle        atlas;                    ///< Atlas que contiene las imágenes de las opciones de pausa
+            Option              options[nOptions];         ///< Datos de las opciones del menú de pausa
+            Atlas_Handle        atlas;                     ///< Atlas que contiene las imágenes de las opciones de pausa
 
         public:
 

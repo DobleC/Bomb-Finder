@@ -95,11 +95,15 @@ namespace game
         load_scores();
         //check_scores();
 
+        walkman = audio_player.play ("sounds/song1.ogg", true);
+        walkman ->stop();
+
         return true;
     }
 
     void Game_Scene::finalize ()
     {
+        walkman ->stop();
         //save_scores();
     }
 
@@ -107,6 +111,7 @@ namespace game
 
     void Game_Scene::suspend ()
     {
+        walkman->pause ();
         suspended = true;               // Se marca que la escena ha pasado a primer plano
     }
 
@@ -114,6 +119,7 @@ namespace game
 
     void Game_Scene::resume ()
     {
+        if (walkman->get_status () != Audio_Player::Playback_Controller::STOPPED) walkman->play ();
         suspended = false;              // Se marca que la escena ha pasado a segundo plano
     }
 
@@ -415,12 +421,14 @@ namespace game
             }
         }
         else
-        if (timer.get_elapsed_seconds () > 0.5f)         // Si las texturas se han cargado muy rápido
-        {                                               // se espera un segundo desde el inicio de
-            restart_game   ();                          // la carga antes de pasar al juego para que
-            create_sprites ();                          // el mensaje de carga no aparezca y desaparezca
-                                                        // demasiado rápido.
+        if (timer.get_elapsed_seconds () > 0.5f)
+        {
+            //Si las texturas se han cargado muy rápido se espera desde el inicio de la carga
+            // antes de pasar al juego para que el mensaje de carga no aparezca y desaparezca demasiado rápido.
+            restart_game   ();
+            create_sprites ();
             state = RUNNING;
+            if (walkman->get_status () == Audio_Player::Playback_Controller::STOPPED) walkman->play ();
         }
     }
 

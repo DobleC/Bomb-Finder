@@ -5,6 +5,7 @@ set ( APP_PATH  ${CMAKE_CURRENT_SOURCE_DIR}    )
 set ( SRC_PATH  ${APP_PATH}/../../../code      )
 set ( LIB_PATH  ${APP_PATH}/../../../libraries )
 
+include ( ${LIB_PATH}/basics/projects/audio/CMakeLists.txt    )
 include ( ${LIB_PATH}/basics/projects/base/CMakeLists.txt     )
 include ( ${LIB_PATH}/basics/projects/gaming/CMakeLists.txt   )
 include ( ${LIB_PATH}/basics/projects/math/CMakeLists.txt     )
@@ -21,6 +22,7 @@ add_library (
 
 target_link_libraries (
     native
+    basics-audio
     basics-base
     basics-opengles
     basics-gaming
