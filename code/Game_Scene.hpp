@@ -72,6 +72,7 @@ using namespace basics;
                 NEXTROUND,
                 GAMEOVER,
                 PAUSE,
+                EXITING,
                 ERROR
             };
 
@@ -180,6 +181,11 @@ using namespace basics;
              * @return
              */
             bool initialize () override;
+
+            /**
+             * Aquí se guarda la partida si el jugador fuerza el cerrado de la aplicación
+             */
+            void finalize () override;
 
             /**
              * Este método lo invoca Director automáticamente cuando el juego pasa a segundo plano.

@@ -30,6 +30,7 @@ namespace game
     {
         { ID(loading),  "sprites/loading.png"        },
         { ID(nextround),"sprites/nextround.png"      },
+        { ID(exiting),  "sprites/exiting.png"        },
         { ID(gameover), "sprites/gameover.png"       },
         { ID(help),     "menu-scene/help.png"        },
         { ID(credits),  "menu-scene/credits.png"     },
@@ -95,6 +96,11 @@ namespace game
         //check_scores();
 
         return true;
+    }
+
+    void Game_Scene::finalize ()
+    {
+        //save_scores();
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -292,7 +298,7 @@ namespace game
             else if(option_at(touch_location) == EXIT)
             {
                 save_scores();
-                state = ERROR;
+                state = EXITING;
                 director.run_scene (shared_ptr< Scene >(new menu::Menu_Scene));
             }
 
@@ -333,7 +339,7 @@ namespace game
             case NEXTROUND: check_endCondition();  break;
             case GAMEOVER:  check_endCondition();  break;
             case PAUSE:     run_pause         ();  break;
-            case ERROR:                            break;
+            case EXITING:                          break;
         }
     }
 
@@ -368,7 +374,7 @@ namespace game
                     case NEXTROUND: render_afterRounds(*canvas); break;
                     case GAMEOVER:  render_afterRounds(*canvas); break;
                     case PAUSE:     render_pause     ( *canvas); break;
-                    case ERROR:     render_afterRounds(*canvas); break;
+                    case EXITING:   render_afterRounds(*canvas); break;
                 }
             }
         }
@@ -741,6 +747,7 @@ namespace game
             Controlador cont;
             controlador = cont;
         }
+        else current_score = controlador.getScore() + controlador.getTotalScore();
     }
 
 
@@ -769,7 +776,7 @@ namespace game
             case LOADING:   id = ID(loading);     break;
             case NEXTROUND: id = ID(nextround);   break;
             case GAMEOVER:  id = ID(gameover);    break;
-            case ERROR:     id = ID(loading);     break;
+            case EXITING:   id = ID(exiting);     break;
         }
 
         Texture_2D * textureRound = textures[id].get ();
